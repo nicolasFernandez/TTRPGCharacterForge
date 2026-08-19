@@ -27,13 +27,9 @@ final class LocalSpellRepository: SpellRepository {
     func fetchSpell(withID id: UUID, completion: @escaping (Result<Spell, any Error>) -> Void) {
         fetchAllSpells { result in
             completion(result.flatMap { spells in
-guard let spell = spells.first(where: { $0.id == id }) else {
-    return .failure(NSError(
-        domain: "LocalSpellRepository",
-        code: 404,
-        userInfo: [NSLocalizedDescriptionKey: "Spell not found."]
-    ))
-}
+                guard let spell = spells.first(where: { $0.id == id }) else {
+                    return .failure(NSError(domain: "LocalSpellRepository", code: 404))
+                }
                 return .success(spell)
             })
         }
