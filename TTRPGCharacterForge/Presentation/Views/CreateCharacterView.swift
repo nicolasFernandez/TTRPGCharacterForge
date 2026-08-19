@@ -22,7 +22,9 @@ struct CreateCharacterView: View {
                     Section { Text(error).foregroundStyle(.red) }
                 }
             }
-            .navigationTitle(viewModel.character.name.isEmpty ? "character_create" : viewModel.character.name)
+            //FIXME: Ensure the empty-name navigation title uses a localized value instead of displaying its raw key. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262737
+            .navigationTitle(viewModel.character.name.isEmpty ? String(localized: "character_create") : viewModel.character.name)
+            //FIXME: Keep the navigation title and toolbar attached to the Form or NavigationStack rather than child content. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814395276
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("done") { viewModel.autosave(); dismiss() }
@@ -259,6 +261,7 @@ private struct AbilityAssignmentView: View {
                 LabeledContent("ability_points_remaining", value: "\(max(0, 27 - pointCost))")
             }
             ForEach(AbilityID.allCases) { ability in
+                //FIXME: Localize the ability name in the Stepper label instead of interpolating its raw value. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262774
                 Stepper(
                     "\(ability.rawValue.capitalized): \(viewModel.character.baseAbilities[ability])",
                     value: Binding(

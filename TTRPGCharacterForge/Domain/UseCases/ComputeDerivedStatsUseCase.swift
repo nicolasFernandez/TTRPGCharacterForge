@@ -97,6 +97,7 @@ enum CharacterValidationError: LocalizedError, Equatable {
     case invalidSpell(String)
     case invalidEquipment
 
+    //FIXME: Localize validation errors and avoid exposing internal field identifiers to users. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262869
     var errorDescription: String? {
         switch self {
         case .missingRequiredChoice(let field): "Choose a value for \(field)."
