@@ -43,6 +43,7 @@ struct AbilityAssignmentService {
     }
 }
 
+//FIXME: Validate ability-score assignment constraints or remove the unused throwing contract. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262821
 /// Applies an ability-score change while enforcing assignment constraints.
 struct UpdateAbilityScoreUseCase {
     func execute(
