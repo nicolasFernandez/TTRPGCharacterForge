@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Loads and validates the localized System Reference Document rules.
 struct LoadSRDRulesUseCase {
     
 }

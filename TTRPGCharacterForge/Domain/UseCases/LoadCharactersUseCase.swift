@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Retrieves the user's saved characters.
 struct LoadCharactersUseCase {
     private let repository: CharacterRepository
     
@@ -14,11 +15,19 @@ struct LoadCharactersUseCase {
         self.repository = repository
     }
     
-    func getAllCharacters(completion: @escaping (Result<[Character], Error>) -> Void) {
-        repository.fetchAll(completion: completion)
+    func getAllCharacters() async throws -> [CharacterDocument] {
+        try await repository.fetchAll()
     }
     
-    func getCharacter(withID id: UUID, completion: @escaping (Result<Character, Error>) -> Void) {
-        repository.fetch(withID: id, completion: completion)
+    func getCharacter(withID id: UUID) async throws -> CharacterDocument {
+        try await repository.fetch(withID: id)
+    }
+
+    func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument {
+        try await repository.duplicate(character)
+    }
+
+    func delete(withID id: UUID) async throws {
+        try await repository.delete(withID: id)
     }
 }

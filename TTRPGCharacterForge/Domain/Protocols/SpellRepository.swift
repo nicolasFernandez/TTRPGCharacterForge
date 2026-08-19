@@ -8,6 +8,7 @@
 import Foundation
 
 // Repository protocol defining data operations
+/// Provides the spell collection used by the spell browser.
 protocol SpellRepository {
     func fetchAllSpells(completion: @escaping (Result<[Spell], Error>) -> Void)
     func fetchSpell(withID id: UUID, completion: @escaping (Result<Spell, Error>) -> Void)

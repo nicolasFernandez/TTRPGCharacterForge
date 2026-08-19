@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Displays a labeled value in a details screen.
 struct DetailRow: View {
     let title: String
     let value: String

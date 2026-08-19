@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Presents controls for narrowing the visible spell collection.
 struct FilterView: View {
     @ObservedObject var viewModel: SpellListViewModel
     @Environment(\.presentationMode) var presentationMode
@@ -43,10 +44,39 @@ struct FilterView: View {
                         .foregroundColor(.primary)
                     }
                 }
+
+                Section("spell_school") {
+                    Button("clear") { viewModel.filterBySchool(nil) }
+                    ForEach(SpellSchool.allCases, id: \.self) { school in
+                        Button {
+                            viewModel.filterBySchool(viewModel.selectedSchoolFilter == school ? nil : school)
+                        } label: {
+                            HStack {
+                                Text(school.name)
+                                Spacer()
+                                if viewModel.selectedSchoolFilter == school { Image(systemName: "checkmark") }
+                            }
+                        }
+                    }
+                }
+
+                Section("spell_properties") {
+                    Toggle("spell_ritual", isOn: Binding(
+                        get: { viewModel.ritualsOnly },
+                        set: viewModel.setRitualsOnly
+                    ))
+                    Toggle("spell_concentration_only", isOn: Binding(
+                        get: { viewModel.concentrationOnly },
+                        set: viewModel.setConcentrationOnly
+                    ))
+                }
                 
                 Button(NSLocalizedString("clear_filters", comment: "")) {
                     viewModel.filterByClass(nil)
                     viewModel.filterByLevel(nil)
+                    viewModel.filterBySchool(nil)
+                    viewModel.setRitualsOnly(false)
+                    viewModel.setConcentrationOnly(false)
                     presentationMode.wrappedValue.dismiss()
                 }
                 .foregroundColor(.blue)
@@ -66,8 +96,7 @@ struct FilterView: View {
 
 struct FilterView_Previews: PreviewProvider {
     static var previews: some View {
-        let cacheManager = SpellCacheManager()
-        let repository = FirebaseSpellRepository(cacheManager: cacheManager)
+        let repository = LocalSpellRepository()
         let useCase = SpellUseCase(repository: repository)
         let viewModel = SpellListViewModel(spellUseCase: useCase)
         FilterView(viewModel: viewModel)

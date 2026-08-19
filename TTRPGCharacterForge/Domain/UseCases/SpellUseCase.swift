@@ -8,6 +8,7 @@
 import Foundation
 
 // Implementation of the use case
+/// Retrieves spells and applies spell-browser filtering rules.
 struct SpellUseCase {
     private let repository: SpellRepository
     

@@ -6,14 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct TTRPGCharacterForgeApp: App {
+    @State private var compositionRoot = CompositionRoot()
+
     var body: some Scene {
         WindowGroup {
-            CompositionRoot()
-                .coordinator
-                .makeView()
+            compositionRoot.coordinator.makeView()
+                .modelContainer(compositionRoot.modelContainer)
         }
     }
 }

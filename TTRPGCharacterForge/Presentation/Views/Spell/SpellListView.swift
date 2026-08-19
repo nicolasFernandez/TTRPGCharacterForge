@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Displays a searchable and filterable list of spells.
 struct SpellListView: View {
     @StateObject var viewModel: SpellListViewModel
     @State private var searchText = ""
@@ -22,7 +23,7 @@ struct SpellListView: View {
                     onCommit: { viewModel.search(query: searchText) })
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
-                .onChange(of: searchText) { newValue in
+                .onChange(of: searchText) { _, newValue in
                     viewModel.search(query: newValue)
                 }
                 
@@ -76,11 +77,9 @@ struct SpellListView: View {
 
 struct SpellListView_Previews: PreviewProvider {
     static var previews: some View {
-        let cacheManager = SpellCacheManager()
-        let repository = FirebaseSpellRepository(cacheManager: cacheManager)
+        let repository = LocalSpellRepository()
         let useCase = SpellUseCase(repository: repository)
         let viewModel = SpellListViewModel(spellUseCase: useCase)
         SpellListView(viewModel: viewModel)
     }
 }
-

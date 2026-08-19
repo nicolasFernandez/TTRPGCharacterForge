@@ -9,7 +9,8 @@ import Foundation
 
 // Entity with properties representing D&D spells
 struct Spell: Identifiable {
-    let id: UUID = UUID()
+    let id: UUID
+    let stableID: String?
     let name: String
     let level: Int
     let school: SpellSchool
@@ -23,6 +24,38 @@ struct Spell: Identifiable {
     
     var isRitual: Bool = false
     var requiresConcentration: Bool = false
+
+    init(
+        id: UUID = UUID(),
+        stableID: String? = nil,
+        name: String,
+        level: Int,
+        school: SpellSchool,
+        castingTime: String,
+        range: String,
+        components: SpellComponents,
+        duration: String,
+        levelDescription: String,
+        higherLevelsDescription: String?,
+        classes: [ClassType],
+        isRitual: Bool = false,
+        requiresConcentration: Bool = false
+    ) {
+        self.id = id
+        self.stableID = stableID
+        self.name = name
+        self.level = level
+        self.school = school
+        self.castingTime = castingTime
+        self.range = range
+        self.components = components
+        self.duration = duration
+        self.levelDescription = levelDescription
+        self.higherLevelsDescription = higherLevelsDescription
+        self.classes = classes
+        self.isRitual = isRitual
+        self.requiresConcentration = requiresConcentration
+    }
      
     var levelString: String {
         if level == 0 {

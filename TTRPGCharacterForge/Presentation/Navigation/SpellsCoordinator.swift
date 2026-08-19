@@ -32,8 +32,7 @@ final class SpellsCoordinator {
 // Extension to help with dependency injection in SwiftUI previews
 extension SpellsCoordinator {
     static var preview: SpellsCoordinator {
-        let cacheManager = SpellCacheManager()
-        let repository = FirebaseSpellRepository(cacheManager: cacheManager)
+        let repository = LocalSpellRepository()
         let useCase = SpellUseCase(repository: repository)
         return SpellsCoordinator(spellUseCase: useCase)
     }

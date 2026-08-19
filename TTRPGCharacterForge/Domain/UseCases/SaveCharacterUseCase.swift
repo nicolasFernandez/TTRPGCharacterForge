@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Validates and persists a character document.
 struct SaveCharacterUseCase {
     private let repository: CharacterRepository
     
@@ -14,7 +15,7 @@ struct SaveCharacterUseCase {
         self.repository = repository
     }
     
-    func saveCharacter(_ character: Character, completion: @escaping (Result<Void, Error>) -> Void) {
-        repository.save(character, completion: completion)
+    func saveCharacter(_ character: CharacterDocument) async throws {
+        try await repository.save(character)
     }
 }
