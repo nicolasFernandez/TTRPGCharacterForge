@@ -9,6 +9,7 @@ import Foundation
 //import Firebase
 
 // Implementation of repository
+/// Fetches spell data from Firebase and maintains a local cache.
 final class FirebaseSpellRepository: SpellRepository {
     private let cacheManager: SpellCacheManager
     

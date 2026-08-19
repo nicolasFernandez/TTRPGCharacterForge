@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Summarizes a spell for display in a list.
 struct SpellRowView: View {
     let spell: Spell
     

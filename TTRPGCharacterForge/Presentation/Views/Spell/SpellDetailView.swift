@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Presents the full rules text and metadata for a spell.
 struct SpellDetailView: View {
     let spell: Spell
     
@@ -126,4 +127,3 @@ struct SpellDetailView_Previews: PreviewProvider {
         SpellDetailView(spell: spell)
     }
 }
-

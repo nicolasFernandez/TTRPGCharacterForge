@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Presents the traits and rules for a playable ancestry.
 struct RaceDetails: View {
     var raceType: RaceType
     var body: some View {

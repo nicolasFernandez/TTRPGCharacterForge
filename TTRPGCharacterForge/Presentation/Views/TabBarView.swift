@@ -29,7 +29,7 @@ struct TabBarView: View {
                     }
                 }
             }
-            .onChange(of: selectedIndex) { index in
+            .onChange(of: selectedIndex) { _, index in
                 withAnimation(.easeInOut) {
                     scrollView.scrollTo(index, anchor: .center)
                 }

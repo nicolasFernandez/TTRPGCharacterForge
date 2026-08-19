@@ -8,6 +8,7 @@
 import Foundation
 
 // Caching logic for spell data
+/// Coordinates memory and disk caching for spell data.
 final class SpellCacheManager {
     private var spellCache: [Spell] = []
     private let expirationTime: TimeInterval = 3600 // 1 hour

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Generates character artwork from a textual description.
 protocol ImageGenService {
     func generatePortrait(prompt: String) throws -> URL
     func generateToken(from portraitURL: URL) throws -> URL
