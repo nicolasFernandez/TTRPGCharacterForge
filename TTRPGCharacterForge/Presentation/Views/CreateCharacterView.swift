@@ -21,9 +21,7 @@ struct CreateCharacterView: View {
                 if let error = viewModel.errorMessage {
                     Section { Text(error).foregroundStyle(.red) }
                 }
-            }
-            .navigationTitle(viewModel.character.name.isEmpty ? "character_create" : viewModel.character.name)
-            .toolbar {
+.navigationTitle(viewModel.character.name.isEmpty ? String(localized: "character_create") : viewModel.character.name)
                 ToolbarItem(placement: .cancellationAction) {
                     Button("done") { viewModel.autosave(); dismiss() }
                 }
@@ -259,14 +257,15 @@ private struct AbilityAssignmentView: View {
                 LabeledContent("ability_points_remaining", value: "\(max(0, 27 - pointCost))")
             }
             ForEach(AbilityID.allCases) { ability in
-                Stepper(
-                    "\(ability.rawValue.capitalized): \(viewModel.character.baseAbilities[ability])",
-                    value: Binding(
-                        get: { viewModel.character.baseAbilities[ability] },
-                        set: { viewModel.setAbility(ability, score: $0, method: method) }
-                    ),
-                    in: method == .pointBuy ? 8...15 : 3...18
-                )
+Stepper(
+    value: Binding(
+        get: { viewModel.character.baseAbilities[ability] },
+        set: { viewModel.setAbility(ability, score: $0, method: method) }
+    ),
+    in: method == .pointBuy ? 8...15 : 3...18
+) {
+    Text("\(NSLocalizedString(ability.rawValue.capitalized, comment: "")): \(viewModel.character.baseAbilities[ability])")
+}
             }
             if method == .standardArray { Button("ability_apply_standard") { applyStandard() } }
             if method == .rolled { Button("ability_roll") { applyRolls() } }
