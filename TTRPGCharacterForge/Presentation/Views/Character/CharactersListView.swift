@@ -26,6 +26,7 @@ struct CharactersListView: View {
                     characterSection(title: "characters_drafts", values: drafts)
                     characterSection(title: "characters_completed", values: completed)
                 }
+                .accessibilityIdentifier("characters.list")
             }
         }
         .navigationTitle("characters_title")
@@ -65,6 +66,7 @@ struct CharactersListView: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("character.row.\(accessibilitySlug(character.name))")
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) { viewModel.delete(character) } label: {
                             Label("delete", systemImage: "trash")
@@ -90,6 +92,12 @@ struct CharactersListView: View {
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { viewModel.errorMessage != nil }, set: { if !$0 { viewModel.errorMessage = nil } })
+    }
+
+    private func accessibilitySlug(_ value: String) -> String {
+        value.lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
     }
 }
 

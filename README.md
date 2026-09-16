@@ -41,6 +41,63 @@ chmod +x .git/hooks/post-checkout
 - Domain and SRD rule code must remain independent of SwiftUI/UIKit so later tvOS, visionOS, and watchOS presentation targets can reuse it.
 - V1 is local-only and must remain fully usable without a network connection.
 
+### Prerequisites
+
+- macOS 14 or later.
+- Full Xcode with an installed iOS Simulator runtime. Repository commands use `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` unless overridden.
+- Homebrew for the optional developer-quality tools below.
+
+The application itself has no third-party runtime dependency. Install the local quality tools when working on implementation, cleanup, or hardening:
+
+```bash
+brew install swiftlint
+brew install fummicc1/tap/swift-complexity
+brew install muter-mutation-testing/formulae/muter
+```
+
+`swift-complexity` requires Swift 6.2 and macOS 14 or later. Verify the active toolchain and installed tools:
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -version
+swiftlint version
+swift-complexity --version
+muter --version
+```
+
+### Quality tooling
+
+The repository uses:
+
+- [SwiftLint](https://github.com/realm/SwiftLint) for everyday style and complexity guardrails (`.swiftlint.yml`).
+- [swift-complexity](https://github.com/fummicc1/swift-complexity) for complete per-method cyclomatic-complexity data (`.swift-complexity.yml`).
+- Xcode [`xccov`](https://keith.github.io/xcode-man-pages/xccov.1.html) for method-level line coverage.
+- `scripts/quality/crap-report.swift` to combine complexity and coverage using `CRAP(m) = complexity² × (1 − coverage)³ + complexity`.
+- [Muter](https://github.com/muter-mutation-testing/muter) for unit-test mutation testing (`muter.conf.yml`).
+
+Run the unit-test, lint, complexity, coverage, and CRAP pipeline with:
+
+```bash
+scripts/quality/run-quality.sh
+```
+
+Reports are written under the ignored `.quality-artifacts/<UTC timestamp>/` directory. By default, CRAP analysis is limited to `TTRPGCharacterForge/Domain`; set `QUALITY_COMPLEXITY_PATH` to analyze another production subtree. The CRAP gate is `<= 4` per measured method. Complexity above four can never satisfy that gate; complexity four requires full coverage. Missing or ambiguous method coverage fails the report rather than being treated as zero or as passing.
+
+Mutation testing is deliberately separate because it repeatedly runs the unit suite and can take a long time. Start with a narrow domain file or use case:
+
+```bash
+scripts/quality/run-mutation.sh 'TTRPGCharacterForge/Domain/UseCases/ComputeDerivedStatsUseCase.swift'
+```
+
+With no argument, the script targets `TTRPGCharacterForge/Domain/**/*.swift`. The checked-in Muter configuration excludes UI declarations, previews, and test sources, and dynamically selects an available iPhone simulator through `scripts/quality/run-unit-tests.sh`. Override simulator selection when needed:
+
+```bash
+QUALITY_DEVICE_ID='<simulator-udid>' scripts/quality/run-quality.sh
+QUALITY_DESTINATION='platform=iOS Simulator,name=<device>,OS=latest' scripts/quality/run-mutation.sh '<file-or-glob>'
+QUALITY_COMPLEXITY_PATH='TTRPGCharacterForge/Data/Local' scripts/quality/run-quality.sh
+```
+
+The mutation goal is 100% for eligible in-scope mutants, but the actionable gate is no unexplained survivors. Equivalent mutants and tool limitations must be recorded rather than hidden through broad exclusions.
+
 ## V1 scope
 
 - [ ] Define a guided level-1 character document and validation engine for SRD 5.1.

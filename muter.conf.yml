@@ -1,0 +1,9 @@
+executable: /bin/zsh
+arguments:
+  - scripts/quality/run-unit-tests.sh
+exclude:
+  - /TTRPGCharacterForgeTests/
+  - /TTRPGCharacterForgeUITests/
+  - /Presentation/Views/
+  - /Preview Content/
+testSuiteTimeout: 600

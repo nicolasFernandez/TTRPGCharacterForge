@@ -121,6 +121,15 @@ final class CharacterEditorVM: ObservableObject {
         autosave()
     }
 
+    func saveCurrencyBalance(_ balance: CurrencyBalance) async throws {
+        var updatedCharacter = character
+        updatedCharacter.currencyBalance = balance
+        updatedCharacter.updatedAt = Date()
+        try await saveCharacterUseCase.saveCharacter(updatedCharacter)
+        character = updatedCharacter
+        errorMessage = nil
+    }
+
     func toggleSpell(_ id: String) {
         Self.toggle(id, in: &character.selectedSpellIDs)
         autosave()

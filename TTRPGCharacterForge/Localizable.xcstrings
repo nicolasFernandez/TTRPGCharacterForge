@@ -2,10 +2,24 @@
   "sourceLanguage" : "en",
   "strings" : {
     "·(a) a .... or (b) ..." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "·(a) a .... o (b) ..."
+          }
+        }
+      }
     },
     "·Something else" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "·Something else"
+          }
+        }
+      }
     },
     "%@ · %@" : {
       "localizations" : {
@@ -18,7 +32,14 @@
       }
     },
     "%@_title" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@_title"
+          }
+        }
+      }
     },
     "%@: %lld" : {
       "localizations" : {
@@ -50,7 +71,14 @@
       }
     },
     "ability_method_%@" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ability_method_%@"
+          }
+        }
+      }
     },
     "ability_method_pointBuy" : {
       "extractionState" : "manual",
@@ -205,10 +233,24 @@
       }
     },
     "Armor" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Armadura"
+          }
+        }
+      }
     },
     "At Higher Levels." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En niveles superiores"
+          }
+        }
+      }
     },
     "back" : {
       "localizations" : {
@@ -425,7 +467,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chaótico Malvado"
+            "value" : "Caótico Malvado"
           }
         }
       }
@@ -499,7 +541,14 @@
       }
     },
     "Character Editor Coming Soon" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor de Personajes Pronto"
+          }
+        }
+      }
     },
     "character_abilities" : {
       "localizations" : {
@@ -1457,6 +1506,90 @@
             "value" : "Elegir…"
           }
         }
+      }
+    },
+    "currency_amount_too_large" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The amount is too large." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La cantidad es demasiado grande." } }
+      }
+    },
+    "currency_apply" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apply to character" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aplicar al personaje" } }
+      }
+    },
+    "currency_copper" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copper (cp)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cobre (cp)" } }
+      }
+    },
+    "currency_electrum" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Electrum (ep)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Electro (ep)" } }
+      }
+    },
+    "currency_gold" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Gold (gp)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Oro (gp)" } }
+      }
+    },
+    "currency_invalid_input" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Coin counts must be nonnegative whole numbers." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Las cantidades de monedas deben ser números enteros no negativos." } }
+      }
+    },
+    "currency_open" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open currency converter" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir conversor de monedas" } }
+      }
+    },
+    "currency_platinum" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Platinum (pp)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Platino (pp)" } }
+      }
+    },
+    "currency_save_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The currency balance could not be saved." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo guardar el saldo de monedas." } }
+      }
+    },
+    "currency_saved" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Currency saved." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Monedas guardadas." } }
+      }
+    },
+    "currency_silver" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Silver (sp)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Plata (sp)" } }
+      }
+    },
+    "currency_title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Currency" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Monedas" } }
+      }
+    },
+    "currency_total_cp" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Total in cp" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Total en cp" } }
+      }
+    },
+    "currency_total_gp" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Total in gp" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Total en gp" } }
       }
     },
     "Class Features" : {
