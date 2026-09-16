@@ -10,7 +10,6 @@ import Foundation
 @MainActor
 /// Manages editable character state and creation-step validation.
 final class CharacterEditorVM: ObservableObject {
-
     private let createCharacterUseCase: CreateCharacterUseCase
     private let updateAbilityScoreUseCase: UpdateAbilityScoreUseCase
     private let computeDerivedStatsUseCase: ComputeDerivedStatsUseCase
@@ -26,7 +25,7 @@ final class CharacterEditorVM: ObservableObject {
     @Published var errorMessage: String?
     @Published var exportedPDF: URL?
     @Published var exportedToken: URL?
-    
+
     init(
         createCharacterUseCase: CreateCharacterUseCase,
         updateAbilityScoreUseCase: UpdateAbilityScoreUseCase,
@@ -100,8 +99,7 @@ final class CharacterEditorVM: ObservableObject {
         character.updatedAt = Date()
         refreshDerivedStats()
         Task {
-            do { try await saveCharacterUseCase.saveCharacter(character) }
-            catch { errorMessage = error.localizedDescription }
+            do { try await saveCharacterUseCase.saveCharacter(character) } catch { errorMessage = error.localizedDescription }
         }
     }
 
@@ -157,8 +155,7 @@ final class CharacterEditorVM: ObservableObject {
     }
 
     private static func toggle(_ id: String, in values: inout [String]) {
-        if let index = values.firstIndex(of: id) { values.remove(at: index) }
-        else { values.append(id) }
+        if let index = values.firstIndex(of: id) { values.remove(at: index) } else { values.append(id) }
     }
 
     private func refreshDerivedStats() {

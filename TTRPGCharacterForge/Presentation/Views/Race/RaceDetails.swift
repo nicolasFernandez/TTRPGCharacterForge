@@ -11,7 +11,7 @@ import SwiftUI
 struct RaceDetails: View {
     var raceType: RaceType
     var body: some View {
-        VStack (alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(raceType.name)
                 .font(.title)
                 .fontWeight(.bold)
@@ -23,7 +23,7 @@ struct RaceDetails: View {
                 .padding(.bottom, 8)
                 .padding(.top, 8)
             Text(
-                String(format: NSLocalizedString("traits_format", comment:""), raceType.name)
+                String(format: NSLocalizedString("traits_format", comment: ""), raceType.name)
             )
                 .fontWeight(.bold)
                 .padding(.leading, 30)

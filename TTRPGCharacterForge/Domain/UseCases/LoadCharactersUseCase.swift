@@ -10,15 +10,15 @@ import Foundation
 /// Retrieves the user's saved characters.
 struct LoadCharactersUseCase {
     private let repository: CharacterRepository
-    
+
     init(repository: CharacterRepository) {
         self.repository = repository
     }
-    
+
     func getAllCharacters() async throws -> [CharacterDocument] {
         try await repository.fetchAll()
     }
-    
+
     func getCharacter(withID id: UUID) async throws -> CharacterDocument {
         try await repository.fetch(withID: id)
     }

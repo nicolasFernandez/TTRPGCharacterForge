@@ -6,7 +6,7 @@
 //
 
 import Foundation
- 
+
 /// Exports a character and its derived statistics as a PDF document.
 protocol PdfExporter {
     func export(_ character: CharacterDocument, catalog: RulesCatalog) throws -> URL

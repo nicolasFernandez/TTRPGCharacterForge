@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum BackgroundType: String  {
+enum BackgroundType: String {
     case acolyte
 
     var name: String {

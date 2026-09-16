@@ -11,9 +11,9 @@ import SwiftUI
 struct FilterView: View {
     @ObservedObject var viewModel: SpellListViewModel
     @Environment(\.presentationMode) var presentationMode
-    
+
     let spellLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -34,7 +34,7 @@ struct FilterView: View {
                                 )
 
                                 Spacer()
-                                
+
                                 if viewModel.selectedLevelFilter == level {
                                     Image(systemName: "checkmark")
                                         .foregroundColor(.blue)
@@ -70,7 +70,7 @@ struct FilterView: View {
                         set: viewModel.setConcentrationOnly
                     ))
                 }
-                
+
                 Button(NSLocalizedString("clear_filters", comment: "")) {
                     viewModel.filterByClass(nil)
                     viewModel.filterByLevel(nil)

@@ -226,7 +226,7 @@ struct CharacterOverrides: Codable, Equatable, Sendable {
 
 /// Legacy in-memory character model retained by the original interface.
 struct Character: Identifiable {
-    let id: UUID = UUID()
+    let id = UUID()
     let name: String
     let race: Race
     let classType: [ClassType]
@@ -240,7 +240,7 @@ struct Character: Identifiable {
 
     var armorClass: Int {
         var finalValue: Int = 0
-        if equipment.contains(where: { $0 is Armor}) {
+        if equipment.contains(where: { $0 is Armor }) {
             for item in equipment {
                 guard let armor = item as? Armor else {
                     continue
@@ -249,7 +249,6 @@ struct Character: Identifiable {
             }
         } else {
             finalValue = 10 + abilities.dexterity.modifier
-
         }
         return finalValue
     }

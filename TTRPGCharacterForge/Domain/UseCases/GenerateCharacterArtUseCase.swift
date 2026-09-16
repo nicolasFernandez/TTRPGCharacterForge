@@ -9,5 +9,4 @@ import Foundation
 
 /// Generates portrait artwork for a character description.
 struct GenerateCharacterArtUseCase {
-    
 }

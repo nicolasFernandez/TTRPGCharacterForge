@@ -12,7 +12,7 @@ struct ClassDetails: View {
     var classType: ClassType
     var body: some View {
         ScrollView {
-            VStack (alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 16) {
                 ClassRow(classType: classType)
                 Text(classType.description)
                 Text(
