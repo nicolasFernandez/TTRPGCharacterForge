@@ -118,6 +118,13 @@ fastlane/test_output
 
 iOSInjectionProject/
 
+# Local quality reports and mutation workspaces
+.quality-artifacts/
+muter_tmp/
+_mutated/
+muter-mappings.json
+muter.report.*
+
 ### SwiftPackageManager ###
 Packages
 xcuserdata

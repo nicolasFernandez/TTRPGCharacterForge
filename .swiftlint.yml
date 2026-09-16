@@ -1,0 +1,18 @@
+included:
+  - TTRPGCharacterForge
+
+excluded:
+  - TTRPGCharacterForge/Preview Content
+  - TTRPGCharacterForgeTests
+  - TTRPGCharacterForgeUITests
+
+cyclomatic_complexity:
+  warning: 4
+  error: 5
+  ignores_case_statements: false
+
+function_body_length:
+  warning: 40
+  error: 60
+
+reporter: xcode

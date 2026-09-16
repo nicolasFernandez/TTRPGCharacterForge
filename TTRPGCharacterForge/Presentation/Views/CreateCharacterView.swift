@@ -22,7 +22,7 @@ struct CreateCharacterView: View {
                     Section { Text(error).foregroundStyle(.red) }
                 }
             }
-            //FIXME: Ensure the empty-name navigation title uses a localized value instead of displaying its raw key. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262737
+            //FIXME: Ensure the empty-name navigation title uses a localized value instead of displaying its raw key. +https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262737
             .navigationTitle(viewModel.character.name.isEmpty ? String(localized: "character_create") : viewModel.character.name)
             //FIXME: Keep the navigation title and toolbar attached to the Form or NavigationStack rather than child content. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814395276
             .toolbar {
@@ -137,6 +137,7 @@ struct CreateCharacterView: View {
                     get: { viewModel.character.selectedEquipmentIDs.contains(item.id) },
                     set: { _ in viewModel.toggleEquipment(item.id) }
                 ))
+                .accessibilityIdentifier("character.equipment.\(item.id)")
             }
             TextField("character_starting_gold", value: Binding(
                 get: { viewModel.character.startingWealthGP ?? 0 },
@@ -147,7 +148,14 @@ struct CreateCharacterView: View {
                 }
             ), format: .number)
                 .keyboardType(.numberPad)
+            NavigationLink {
+                CurrencyConverterView(viewModel: viewModel)
+            } label: {
+                Label("currency_open", systemImage: "coloncurrencysign.circle")
+            }
+            .accessibilityIdentifier("character.currency.open")
         }
+        .accessibilityIdentifier("character.equipment.summary")
     }
 
     private var spellsStep: some View {

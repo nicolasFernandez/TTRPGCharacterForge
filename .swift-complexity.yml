@@ -1,0 +1,4 @@
+# CRAP <= 4 is impossible when cyclomatic complexity is greater than 4.
+# swift-complexity treats the configured threshold as a violation boundary,
+# so 5 flags the first value that can never satisfy the CRAP gate.
+defaultThreshold: 5

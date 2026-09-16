@@ -1,5 +1,5 @@
 //
-//  Character.swift
+//  CharacterDocument.swift
 //  TTRPGCharacterForge
 //
 //  Created by Nicolas Alonso Fernandez Alarcon on 26-12-22.
@@ -44,6 +44,7 @@ struct CharacterDocument: Identifiable, Codable, Equatable, Sendable {
     var selectedLanguageIDs: [String]
     var selectedEquipmentIDs: [String]
     var startingWealthGP: Int?
+    var currencyBalance: CurrencyBalance?
     var selectedSpellIDs: [String]
     var personality: CharacterPersonality
     var appearance: String
@@ -74,6 +75,7 @@ struct CharacterDocument: Identifiable, Codable, Equatable, Sendable {
         selectedLanguageIDs: [String] = [],
         selectedEquipmentIDs: [String] = [],
         startingWealthGP: Int? = nil,
+        currencyBalance: CurrencyBalance? = nil,
         selectedSpellIDs: [String] = [],
         personality: CharacterPersonality = .init(),
         appearance: String = "",
@@ -103,6 +105,7 @@ struct CharacterDocument: Identifiable, Codable, Equatable, Sendable {
         self.selectedLanguageIDs = selectedLanguageIDs
         self.selectedEquipmentIDs = selectedEquipmentIDs
         self.startingWealthGP = startingWealthGP
+        self.currencyBalance = currencyBalance
         self.selectedSpellIDs = selectedSpellIDs
         self.personality = personality
         self.appearance = appearance
