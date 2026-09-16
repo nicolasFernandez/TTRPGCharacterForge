@@ -30,23 +30,23 @@ final class CompositionRoot {
             portraitStore: portraitStore
         )
     }
-    
+
     // MARK: - Coordinators
-    
+
     lazy var spellsCoordinator: SpellsCoordinator = {
         SpellsCoordinator(spellUseCase: makeSpellUseCase())
     }()
-    
+
     // MARK: - Private Factory Methods
-    
+
     private func makeSpellUseCase() -> SpellUseCase {
         SpellUseCase(repository: makeSpellRepository())
     }
-    
+
     private func makeSpellRepository() -> SpellRepository {
         LocalSpellRepository(rulesRepository: rulesRepository)
     }
-    
+
     private func makeSpellCacheManager() -> SpellCacheManager {
         SpellCacheManager()
     }

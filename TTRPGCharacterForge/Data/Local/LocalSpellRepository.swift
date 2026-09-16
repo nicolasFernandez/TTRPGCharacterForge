@@ -23,19 +23,19 @@ final class LocalSpellRepository: SpellRepository {
             completion(.failure(error))
         }
     }
-    
+
     func fetchSpell(withID id: UUID, completion: @escaping (Result<Spell, any Error>) -> Void) {
         fetchAllSpells { result in
             completion(result.flatMap { spells in
                 guard let spell = spells.first(where: { $0.id == id }) else {
-                    //FIXME: Add a localized description to the spell-not-found error. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262668
+                    // FIXME: Add a localized description to the spell-not-found error. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262668
                     return .failure(NSError(domain: "LocalSpellRepository", code: 404))
                 }
                 return .success(spell)
             })
         }
     }
-    
+
     func fetchSpells(forClass classType: ClassType, completion: @escaping (Result<[Spell], any Error>) -> Void) {
         fetchAllSpells { result in
             switch result {
@@ -47,7 +47,7 @@ final class LocalSpellRepository: SpellRepository {
             }
         }
     }
-    
+
     func fetchSpells(forLevel level: Int, completion: @escaping (Result<[Spell], any Error>) -> Void) {
         fetchAllSpells { result in
             switch result {
@@ -59,7 +59,7 @@ final class LocalSpellRepository: SpellRepository {
             }
         }
     }
-    
+
     func searchSpells(byName name: String, completion: @escaping (Result<[Spell], any Error>) -> Void) {
         fetchAllSpells { result in
             switch result {
@@ -71,7 +71,7 @@ final class LocalSpellRepository: SpellRepository {
             }
         }
     }
-    
+
     func saveSpell(_ spell: Spell, completion: @escaping (Result<Void, any Error>) -> Void) {
         completion(.failure(NSError(
             domain: "LocalSpellRepository",

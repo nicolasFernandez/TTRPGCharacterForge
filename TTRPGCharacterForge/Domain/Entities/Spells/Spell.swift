@@ -21,7 +21,7 @@ struct Spell: Identifiable {
     let levelDescription: String
     let higherLevelsDescription: String?
     let classes: [ClassType]
-    
+
     var isRitual: Bool = false
     var requiresConcentration: Bool = false
 
@@ -56,7 +56,7 @@ struct Spell: Identifiable {
         self.isRitual = isRitual
         self.requiresConcentration = requiresConcentration
     }
-     
+
     var levelString: String {
         if level == 0 {
             return NSLocalizedString("cantrip_text", comment: "")

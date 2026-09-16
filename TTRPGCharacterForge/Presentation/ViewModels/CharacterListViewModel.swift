@@ -12,11 +12,11 @@ import Foundation
 final class CharacterListViewModel: ObservableObject {
     private let loadCharactersUseCase: LoadCharactersUseCase
     private let saveCharacterUseCase: SaveCharacterUseCase
-    
+
     @Published var characters: [CharacterDocument] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-    
+
     init(
         loadCharactersUseCase: LoadCharactersUseCase,
         saveCharacterUseCase: SaveCharacterUseCase
@@ -24,7 +24,7 @@ final class CharacterListViewModel: ObservableObject {
         self.loadCharactersUseCase = loadCharactersUseCase
         self.saveCharacterUseCase = saveCharacterUseCase
     }
-    
+
     func loadCharacters() {
         isLoading = true
         errorMessage = nil

@@ -34,7 +34,7 @@ enum LanguageType: String {
         case .common: return ["Humans"]
         case .dwarvish: return ["Dwarves"]
         case .elvish: return ["Elves"]
-        case .giant: return ["Ogres","Giants"]
+        case .giant: return ["Ogres", "Giants"]
         case .gnomish: return ["Gnomes"]
         case .goblin: return ["Goblinoids"]
         case .halfling: return ["Halflings"]

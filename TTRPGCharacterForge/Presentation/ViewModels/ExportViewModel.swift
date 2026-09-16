@@ -10,7 +10,7 @@ import Foundation
 /// Coordinates character-sheet export and share-sheet presentation.
 final class ExportViewModel: ObservableObject {
     private let exportCharacterPdfUseCase: ExportCharacterPdfUseCase
-    
+
     init(exportCharacterPdfUseCase: ExportCharacterPdfUseCase) {
         self.exportCharacterPdfUseCase = exportCharacterPdfUseCase
     }

@@ -12,7 +12,7 @@ struct SpellListView: View {
     @StateObject var viewModel: SpellListViewModel
     @State private var searchText = ""
     @State private var showingFilters = false
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -26,7 +26,7 @@ struct SpellListView: View {
                 .onChange(of: searchText) { _, newValue in
                     viewModel.search(query: newValue)
                 }
-                
+
                 content
             }
             .toolbar {
