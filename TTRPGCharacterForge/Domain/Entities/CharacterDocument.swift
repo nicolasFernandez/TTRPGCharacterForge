@@ -132,7 +132,7 @@ enum CharacterCreationStep: Int, Codable, CaseIterable, Sendable {
 }
 
 /// A stable identifier for one of the six core abilities.
-enum AbilityID: String, Codable, CaseIterable, Identifiable, Sendable {
+enum AbilityID: String, Codable, CaseIterable, Identifiable, Hashable, Sendable {
     case strength, dexterity, constitution, intelligence, wisdom, charisma
     var id: String { rawValue }
 }
@@ -147,8 +147,12 @@ struct AbilityScoreSet: Codable, Equatable, Sendable {
     var charisma: Int
 
     static let zero = AbilityScoreSet(
-        strength: 0, dexterity: 0, constitution: 0,
-        intelligence: 0, wisdom: 0, charisma: 0
+        strength: 0,
+        dexterity: 0,
+        constitution: 0,
+        intelligence: 0,
+        wisdom: 0,
+        charisma: 0
     )
 
     subscript(_ ability: AbilityID) -> Int {

@@ -13,7 +13,7 @@ protocol RulesRepository {
 }
 
 /// A supported locale for bundled rules content.
-enum RulesLocale: String, Codable, Sendable {
+enum RulesLocale: String, Codable, Hashable, Sendable {
     case english = "en"
     case spanish = "es"
 
