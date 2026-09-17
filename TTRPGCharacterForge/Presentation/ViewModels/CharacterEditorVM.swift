@@ -138,6 +138,7 @@ final class CharacterEditorVM: ObservableObject {
     }
 
     func saveCurrencyBalance(_ balance: CurrencyBalance) async throws {
+        autosaveTask?.cancel()
         var updatedCharacter = character
         updatedCharacter.currencyBalance = balance
         updatedCharacter.startingWealthGP = nil
@@ -157,7 +158,9 @@ final class CharacterEditorVM: ObservableObject {
             let previousPortrait = character.portrait
             let replacement = try portraitStore.save(data, for: character.id)
             character.portrait = replacement
-            if let previousPortrait { try? portraitStore.delete(previousPortrait) }
+            if let previousPortrait, previousPortrait != replacement {
+                try? portraitStore.delete(previousPortrait)
+            }
             autosave()
         } catch { errorMessage = error.localizedDescription }
     }

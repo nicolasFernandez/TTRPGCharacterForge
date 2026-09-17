@@ -112,7 +112,7 @@ struct CreateCharacterUseCase {
     ) throws {
         let selectedSpellIDs = Set(character.selectedSpellIDs)
         guard selectedSpellIDs.count == character.selectedSpellIDs.count else {
-            throw CharacterValidationError.invalidSpell("duplicate")
+            throw CharacterValidationError.duplicateSpellSelection
         }
         let cantripCount = character.selectedSpellIDs.filter { id in
             catalog.spells.first { $0.id == id }?.level == 0
@@ -120,7 +120,10 @@ struct CreateCharacterUseCase {
         let leveledCount = character.selectedSpellIDs.count - cantripCount
         guard cantripCount <= characterClass.cantripsKnown,
               leveledCount <= characterClass.spellsKnownOrPrepared else {
-            throw CharacterValidationError.invalidSpell("count")
+            throw CharacterValidationError.spellCountExceeded(
+                cantrips: cantripCount,
+                leveled: leveledCount
+            )
         }
         for spellID in character.selectedSpellIDs {
             let spell = catalog.spells.first { $0.id == spellID }

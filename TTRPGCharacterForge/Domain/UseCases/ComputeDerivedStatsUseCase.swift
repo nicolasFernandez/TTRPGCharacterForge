@@ -100,6 +100,8 @@ enum CharacterValidationError: LocalizedError, Equatable {
     case invalidAbilityScores
     case invalidSkillCount(expected: Int, actual: Int)
     case invalidSpell(String)
+    case duplicateSpellSelection
+    case spellCountExceeded(cantrips: Int, leveled: Int)
     case invalidEquipment
 
     var errorDescription: String? {
@@ -143,6 +145,20 @@ enum CharacterValidationError: LocalizedError, Equatable {
                     comment: "Validation: selected spell is not available (1 param: spell name)"
                 ),
                 spell
+            )
+        case .duplicateSpellSelection:
+            return NSLocalizedString(
+                "validation_duplicate_spell_selection",
+                comment: "Validation: the same spell was selected more than once"
+            )
+        case let .spellCountExceeded(cantrips, leveled):
+            return String(
+                format: NSLocalizedString(
+                    "validation_spell_count_exceeded",
+                    comment: "Validation: selected spell counts exceed the class limits"
+                ),
+                cantrips,
+                leveled
             )
         case .invalidEquipment:
             return NSLocalizedString("validation_invalid_equipment", comment: "Validation: invalid equipment selection")
