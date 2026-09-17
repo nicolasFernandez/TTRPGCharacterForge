@@ -44,9 +44,12 @@ enum CharacterStoreError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .notFound(let id): "Character \(id) was not found."
-        case .unsupportedSchema(let version): "Character schema \(version) is not supported."
-        case .corrupted(let id, _): "Character \(id) could not be decoded."
+        case .notFound:
+            NSLocalizedString("character_store_not_found", comment: "Character persistence record was not found")
+        case .unsupportedSchema:
+            NSLocalizedString("character_store_unsupported_schema", comment: "Character persistence schema is unsupported")
+        case .corrupted:
+            NSLocalizedString("character_store_corrupted", comment: "Character persistence record is corrupted")
         }
     }
 }
@@ -74,7 +77,7 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         let descriptor = FetchDescriptor<CharacterRecord>(
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
-        return try context.fetch(descriptor).map(decode)
+        return try context.fetch(descriptor).map { try decode($0) }
     }
 
     func fetch(withID id: UUID) async throws -> CharacterDocument {
@@ -96,7 +99,8 @@ final class SwiftDataCharacterRepository: CharacterRepository {
     func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument {
         var copy = character
         copy.id = UUID()
-        copy.name = character.name.isEmpty ? "Copy" : "\(character.name) Copy"
+        let suffix = NSLocalizedString("character_duplicate_suffix", comment: "Suffix added to duplicated character names")
+        copy.name = character.name.isEmpty ? suffix : "\(character.name) \(suffix)"
         copy.state = .draft
         copy.createdAt = Date()
         copy.updatedAt = copy.createdAt

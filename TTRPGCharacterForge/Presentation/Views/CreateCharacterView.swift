@@ -22,13 +22,20 @@ struct CreateCharacterView: View {
                     Section { Text(error).foregroundStyle(.red) }
                 }
             }
-            // FIXME: Ensure the empty-name navigation title uses a localized value instead of displaying its raw key. +https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262737
             .navigationTitle(viewModel.character.name.isEmpty ? String(localized: "character_create") : viewModel.character.name)
             // FIXME: Keep the navigation title and toolbar attached to the Form or NavigationStack rather than child content. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814395276
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("done") { viewModel.autosave(); dismiss() }
                 }
+            }
+            .onChange(of: viewModel.character.classID) { _, newValue in
+                viewModel.character.archetypeID = nil
+                guard let rule = viewModel.classes.first(where: { $0.id == newValue }) else { return }
+                viewModel.character.selectedSkillIDs = viewModel.character.selectedSkillIDs.filter { rule.availableSkillIDs.contains($0) }
+                let availableSpellIDs = Set(viewModel.spells.map(\.id))
+                viewModel.character.selectedSpellIDs = viewModel.character.selectedSpellIDs.filter { availableSpellIDs.contains($0) }
+                viewModel.autosave()
             }
             .safeAreaInset(edge: .bottom) { navigationBar }
         }
@@ -97,7 +104,12 @@ struct CreateCharacterView: View {
                 Text("choose_prompt").tag(String?.none)
                 ForEach(viewModel.backgrounds) { Text($0.name).tag(Optional($0.id)) }
             }
-            .onChange(of: viewModel.character.backgroundID) { _, newValue in
+            .onChange(of: viewModel.character.backgroundID) { oldValue, newValue in
+                if let oldRule = viewModel.backgrounds.first(where: { $0.id == oldValue }) {
+                    viewModel.character.selectedSkillIDs.removeAll { oldRule.grantedSkillIDs.contains($0) }
+                    viewModel.character.selectedLanguageIDs.removeAll { oldRule.grantedLanguageIDs.contains($0) }
+                    viewModel.character.selectedEquipmentIDs.removeAll { oldRule.grantedEquipmentIDs.contains($0) }
+                }
                 guard let rule = viewModel.backgrounds.first(where: { $0.id == newValue }) else { return }
                 viewModel.character.selectedSkillIDs = Array(Set(viewModel.character.selectedSkillIDs + rule.grantedSkillIDs))
                 viewModel.character.selectedLanguageIDs = Array(Set(viewModel.character.selectedLanguageIDs + rule.grantedLanguageIDs))
@@ -143,7 +155,10 @@ struct CreateCharacterView: View {
                 get: { viewModel.character.startingWealthGP ?? 0 },
                 set: {
                     viewModel.character.startingWealthGP = $0 > 0 ? $0 : nil
-                    if $0 > 0 { viewModel.character.selectedEquipmentIDs = [] }
+                    if $0 > 0 {
+                        viewModel.character.selectedEquipmentIDs = []
+                        viewModel.character.currencyBalance = nil
+                    }
                     viewModel.autosave()
                 }
             ), format: .number)
@@ -197,8 +212,8 @@ struct CreateCharacterView: View {
     private var reviewStep: some View {
         Section("character_review") {
             LabeledContent("character_name", value: viewModel.character.name)
-            LabeledContent("character_race", value: viewModel.character.raceID ?? "—")
-            LabeledContent("character_class", value: viewModel.character.classID ?? "—")
+            LabeledContent("character_race", value: viewModel.races.first(where: { $0.id == viewModel.character.raceID })?.name ?? "—")
+            LabeledContent("character_class", value: viewModel.classes.first(where: { $0.id == viewModel.character.classID })?.name ?? "—")
             if let stats = viewModel.derivedStats {
                 LabeledContent("character_armor_class", value: "\(stats.armorClass)")
                 LabeledContent("character_hit_points", value: "\(stats.hitPoints)")
@@ -255,7 +270,12 @@ struct CreateCharacterView: View {
 
 private struct AbilityAssignmentView: View {
     @ObservedObject var viewModel: CharacterEditorVM
-    @State private var method: AbilityAssignmentMethod = .standardArray
+    @State private var method: AbilityAssignmentMethod
+
+    init(viewModel: CharacterEditorVM) {
+        self.viewModel = viewModel
+        _method = State(initialValue: viewModel.character.abilityMethod ?? .standardArray)
+    }
 
     var body: some View {
         Section("character_abilities") {
@@ -269,9 +289,20 @@ private struct AbilityAssignmentView: View {
                 LabeledContent("ability_points_remaining", value: "\(max(0, 27 - pointCost))")
             }
             ForEach(AbilityID.allCases) { ability in
-                // FIXME: Localize the ability name in the Stepper label instead of interpolating its raw value. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262774
+                let abilityName = NSLocalizedString(
+                    "ability_\(ability.rawValue)",
+                    comment: "Ability name"
+                )
+                let label = String.localizedStringWithFormat(
+                    NSLocalizedString(
+                        "ability_score_stepper",
+                        comment: "Ability score stepper label (2 params: ability, score)"
+                    ),
+                    abilityName,
+                    viewModel.character.baseAbilities[ability]
+                )
                 Stepper(
-                    "\(ability.rawValue.capitalized): \(viewModel.character.baseAbilities[ability])",
+                    label,
                     value: Binding(
                         get: { viewModel.character.baseAbilities[ability] },
                         set: { viewModel.setAbility(ability, score: $0, method: method) }

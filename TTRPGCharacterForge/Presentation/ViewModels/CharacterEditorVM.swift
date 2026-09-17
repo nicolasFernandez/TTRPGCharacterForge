@@ -25,6 +25,7 @@ final class CharacterEditorVM: ObservableObject {
     @Published var errorMessage: String?
     @Published var exportedPDF: URL?
     @Published var exportedToken: URL?
+    private var autosaveTask: Task<Void, Never>?
 
     init(
         createCharacterUseCase: CreateCharacterUseCase,
@@ -84,9 +85,11 @@ final class CharacterEditorVM: ObservableObject {
 
     func complete() async -> Bool {
         do {
-            try createCharacterUseCase.validateForCompletion(character, catalog: catalog)
-            character.state = .completed
-            try await saveCharacterUseCase.saveCharacter(character)
+            var completed = character
+            try createCharacterUseCase.validateForCompletion(completed, catalog: catalog)
+            completed.state = .completed
+            try await saveCharacterUseCase.saveCharacter(completed)
+            character = completed
             errorMessage = nil
             return true
         } catch {
@@ -98,8 +101,17 @@ final class CharacterEditorVM: ObservableObject {
     func autosave() {
         character.updatedAt = Date()
         refreshDerivedStats()
-        Task {
-            do { try await saveCharacterUseCase.saveCharacter(character) } catch { errorMessage = error.localizedDescription }
+        autosaveTask?.cancel()
+        let snapshot = character
+        autosaveTask = Task { [weak self] in
+            do {
+                // Coalesce rapid edits before touching SwiftData.
+                try await Task.sleep(for: .milliseconds(100))
+                try Task.checkCancellation()
+                try await self?.saveCharacterUseCase.saveCharacter(snapshot)
+            }
+            catch is CancellationError { }
+            catch { self?.errorMessage = error.localizedDescription }
         }
     }
 
@@ -115,13 +127,17 @@ final class CharacterEditorVM: ObservableObject {
 
     func toggleEquipment(_ id: String) {
         Self.toggle(id, in: &character.selectedEquipmentIDs)
-        if !character.selectedEquipmentIDs.isEmpty { character.startingWealthGP = nil }
+        if !character.selectedEquipmentIDs.isEmpty {
+            character.startingWealthGP = nil
+            character.currencyBalance = nil
+        }
         autosave()
     }
 
     func saveCurrencyBalance(_ balance: CurrencyBalance) async throws {
         var updatedCharacter = character
         updatedCharacter.currencyBalance = balance
+        updatedCharacter.startingWealthGP = nil
         updatedCharacter.updatedAt = Date()
         try await saveCharacterUseCase.saveCharacter(updatedCharacter)
         character = updatedCharacter
