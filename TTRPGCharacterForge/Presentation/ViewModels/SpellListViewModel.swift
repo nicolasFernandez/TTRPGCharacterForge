@@ -75,9 +75,9 @@ final class SpellListViewModel: ObservableObject {
                 .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
                 .contains(normalizedQuery)
             return matchesName
-                && (selectedClassFilter == nil || spell.classes.contains(selectedClassFilter!))
-                && (selectedLevelFilter == nil || spell.level == selectedLevelFilter!)
-                && (selectedSchoolFilter == nil || spell.school == selectedSchoolFilter!)
+                && (selectedClassFilter.map { spell.classes.contains($0) } ?? true)
+                && (selectedLevelFilter.map { spell.level == $0 } ?? true)
+                && (selectedSchoolFilter.map { spell.school == $0 } ?? true)
                 && (!ritualsOnly || spell.isRitual)
                 && (!concentrationOnly || spell.requiresConcentration)
         }
