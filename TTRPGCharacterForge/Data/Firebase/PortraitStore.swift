@@ -19,7 +19,7 @@ struct PortraitStore {
     }
 
     func save(_ data: Data, for characterID: UUID, fileExtension: String = "jpg") throws -> PortraitReference {
-        try fileManager.createDirectory(at: baseURL, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: baseURL, withIntermediateDirectories: true, attributes: nil)
         let filename = "\(characterID.uuidString).\(fileExtension)"
         let destination = baseURL.appendingPathComponent(filename)
         try data.write(to: destination, options: .atomic)

@@ -47,8 +47,31 @@ struct CreateCharacterUseCase {
                 actual: classSkills.count
             )
         }
-        guard !character.selectedEquipmentIDs.isEmpty || character.startingWealthGP != nil else {
+        guard !character.selectedEquipmentIDs.isEmpty || character.startingWealthGP != nil || character.currencyBalance != nil else {
             throw CharacterValidationError.invalidEquipment
+        }
+        let selectedEquipment = Set(character.selectedEquipmentIDs)
+        let backgroundEquipment = Set(catalog.background(id: character.backgroundID)?.grantedEquipmentIDs ?? [])
+        let allowedEquipment = Set(characterClass.equipmentChoiceGroups.flatMap { $0 }).union(backgroundEquipment)
+        guard selectedEquipment.isSubset(of: allowedEquipment) else {
+            throw CharacterValidationError.invalidEquipment
+        }
+        if character.currencyBalance == nil && character.startingWealthGP == nil {
+            guard characterClass.equipmentChoiceGroups.allSatisfy({ group in
+                !Set(group).isDisjoint(with: selectedEquipment)
+            }) else {
+                throw CharacterValidationError.invalidEquipment
+            }
+        }
+        let selectedSpellIDs = Set(character.selectedSpellIDs)
+        guard selectedSpellIDs.count == character.selectedSpellIDs.count else {
+            throw CharacterValidationError.invalidSpell("duplicate")
+        }
+        let cantripCount = character.selectedSpellIDs.filter { id in catalog.spells.first(where: { $0.id == id })?.level == 0 }.count
+        let leveledCount = character.selectedSpellIDs.count - cantripCount
+        guard cantripCount <= characterClass.cantripsKnown,
+              leveledCount <= characterClass.spellsKnownOrPrepared else {
+            throw CharacterValidationError.invalidSpell("count")
         }
         for spellID in character.selectedSpellIDs {
             guard let spell = catalog.spells.first(where: { $0.id == spellID }),

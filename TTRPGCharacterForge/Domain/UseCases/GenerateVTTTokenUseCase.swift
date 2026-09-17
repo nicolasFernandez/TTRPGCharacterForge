@@ -7,12 +7,18 @@
 
 import Foundation
 
+#if canImport(UIKit)
+import UIKit
+#endif
+
 /// Produces a virtual-tabletop token from a character portrait.
 struct GenerateVTTTokenUseCase {
     enum TokenError: LocalizedError {
         case invalidImage
         case encodingFailed
-        var errorDescription: String? { "The portrait could not be converted to a VTT token." }
+        var errorDescription: String? {
+            NSLocalizedString("token_export_failed", comment: "VTT token export failure")
+        }
     }
 
 #if canImport(UIKit)
@@ -59,7 +65,3 @@ struct GenerateVTTTokenUseCase {
     }
 #endif
 }
-
-#if canImport(UIKit)
-import UIKit
-#endif

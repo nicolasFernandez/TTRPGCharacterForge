@@ -12,6 +12,7 @@ import Foundation
 final class CharacterListViewModel: ObservableObject {
     private let loadCharactersUseCase: LoadCharactersUseCase
     private let saveCharacterUseCase: SaveCharacterUseCase
+    private var loadGeneration = UUID()
 
     @Published var characters: [CharacterDocument] = []
     @Published var isLoading: Bool = false
@@ -25,32 +26,33 @@ final class CharacterListViewModel: ObservableObject {
         self.saveCharacterUseCase = saveCharacterUseCase
     }
 
-    func loadCharacters() {
+    func loadCharacters() async {
+        let generation = UUID()
+        loadGeneration = generation
         isLoading = true
         errorMessage = nil
-        Task {
-            do {
-                characters = try await loadCharactersUseCase.getAllCharacters()
-            } catch {
-                errorMessage = String(
-                    format: NSLocalizedString("characters_load_error", comment: ""),
-                    error.localizedDescription
-                )
-            }
-            isLoading = false
+        do {
+            let loaded = try await loadCharactersUseCase.getAllCharacters()
+            guard generation == loadGeneration else { return }
+            characters = loaded
+        } catch is CancellationError {
+        } catch {
+            guard generation == loadGeneration else { return }
+            errorMessage = String(format: NSLocalizedString("characters_load_error", comment: ""), error.localizedDescription)
         }
+        if generation == loadGeneration { isLoading = false }
     }
 
     func save(_ character: CharacterDocument) async throws {
         try await saveCharacterUseCase.saveCharacter(character)
-        loadCharacters()
+        await loadCharacters()
     }
 
     func duplicate(_ character: CharacterDocument) {
         Task {
             do {
                 _ = try await loadCharactersUseCase.duplicate(character)
-                loadCharacters()
+                await loadCharacters()
             } catch { errorMessage = error.localizedDescription }
         }
     }
@@ -59,7 +61,7 @@ final class CharacterListViewModel: ObservableObject {
         Task {
             do {
                 try await loadCharactersUseCase.delete(withID: character.id)
-                loadCharacters()
+                await loadCharacters()
             } catch { errorMessage = error.localizedDescription }
         }
     }

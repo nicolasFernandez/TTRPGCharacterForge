@@ -35,9 +35,9 @@ struct CharactersListView: View {
                 Label("character_create", systemImage: "plus")
             }
         }
-        .task { viewModel.loadCharacters() }
-        .refreshable { viewModel.loadCharacters() }
-        .sheet(item: $editor, onDismiss: viewModel.loadCharacters) { destination in
+        .task { await viewModel.loadCharacters() }
+        .refreshable { await viewModel.loadCharacters() }
+        .sheet(item: $editor, onDismiss: { Task { await viewModel.loadCharacters() } }) { destination in
             editorView(for: destination.character)
         }
         .alert("error_title", isPresented: errorBinding) {
@@ -58,7 +58,7 @@ struct CharactersListView: View {
                             VStack(alignment: .leading) {
                                 Text(character.name.isEmpty ? String(localized: "character_unnamed") : character.name)
                                     .font(.headline)
-                                Text(character.classID ?? String(localized: "character_incomplete"))
+                                Text(className(for: character))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
@@ -98,6 +98,15 @@ struct CharactersListView: View {
         value.lowercased()
             .replacingOccurrences(of: " ", with: "-")
             .filter { $0.isLetter || $0.isNumber || $0 == "-" }
+    }
+
+    private func className(for character: CharacterDocument) -> String {
+        guard let classID = character.classID,
+              let catalog = try? compositionRoot.rulesRepository.catalog(locale: .current),
+              let rule = catalog.characterClass(id: classID) else {
+            return character.classID ?? String(localized: "character_incomplete")
+        }
+        return rule.name
     }
 }
 

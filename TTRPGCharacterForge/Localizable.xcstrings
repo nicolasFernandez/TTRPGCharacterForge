@@ -163,6 +163,9 @@
         }
       }
     },
+    "ability_score_stepper" : {
+      "comment" : "Ability score stepper label (2 params: ability, score)"
+    },
     "abjuration_name" : {
       "comment" : "Schools",
       "extractionState" : "manual",
@@ -758,6 +761,23 @@
         }
       }
     },
+    "character_duplicate_suffix" : {
+      "comment" : "Suffix added to duplicated character names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia"
+          }
+        }
+      }
+    },
     "character_equipment" : {
       "localizations" : {
         "en" : {
@@ -1331,6 +1351,57 @@
         }
       }
     },
+    "character_store_corrupted" : {
+      "comment" : "Character persistence record is corrupted",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The character could not be loaded."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo cargar el personaje."
+          }
+        }
+      }
+    },
+    "character_store_not_found" : {
+      "comment" : "Character persistence record was not found",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The character could not be found."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró el personaje."
+          }
+        }
+      }
+    },
+    "character_store_unsupported_schema" : {
+      "comment" : "Character persistence schema is unsupported",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This character version is not supported."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta versión del personaje no es compatible."
+          }
+        }
+      }
+    },
     "character_subrace" : {
       "localizations" : {
         "en" : {
@@ -1508,90 +1579,6 @@
         }
       }
     },
-    "currency_amount_too_large" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The amount is too large." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "La cantidad es demasiado grande." } }
-      }
-    },
-    "currency_apply" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apply to character" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aplicar al personaje" } }
-      }
-    },
-    "currency_copper" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copper (cp)" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cobre (cp)" } }
-      }
-    },
-    "currency_electrum" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Electrum (ep)" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Electro (ep)" } }
-      }
-    },
-    "currency_gold" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Gold (gp)" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Oro (gp)" } }
-      }
-    },
-    "currency_invalid_input" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Coin counts must be nonnegative whole numbers." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Las cantidades de monedas deben ser números enteros no negativos." } }
-      }
-    },
-    "currency_open" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open currency converter" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir conversor de monedas" } }
-      }
-    },
-    "currency_platinum" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Platinum (pp)" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Platino (pp)" } }
-      }
-    },
-    "currency_save_failed" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The currency balance could not be saved." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo guardar el saldo de monedas." } }
-      }
-    },
-    "currency_saved" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Currency saved." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Monedas guardadas." } }
-      }
-    },
-    "currency_silver" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Silver (sp)" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Plata (sp)" } }
-      }
-    },
-    "currency_title" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Currency" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Monedas" } }
-      }
-    },
-    "currency_total_cp" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Total in cp" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Total en cp" } }
-      }
-    },
-    "currency_total_gp" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Total in gp" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Total en gp" } }
-      }
-    },
     "Class Features" : {
       "localizations" : {
         "en" : {
@@ -1756,6 +1743,230 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Constitución"
+          }
+        }
+      }
+    },
+    "currency_amount_too_large" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The amount is too large."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La cantidad es demasiado grande."
+          }
+        }
+      }
+    },
+    "currency_apply" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply to character"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicar al personaje"
+          }
+        }
+      }
+    },
+    "currency_copper" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copper (cp)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cobre (cp)"
+          }
+        }
+      }
+    },
+    "currency_electrum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Electrum (ep)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Electro (ep)"
+          }
+        }
+      }
+    },
+    "currency_gold" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gold (gp)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oro (gp)"
+          }
+        }
+      }
+    },
+    "currency_invalid_input" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coin counts must be nonnegative whole numbers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las cantidades de monedas deben ser números enteros no negativos."
+          }
+        }
+      }
+    },
+    "currency_open" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open currency converter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir conversor de monedas"
+          }
+        }
+      }
+    },
+    "currency_platinum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platinum (pp)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platino (pp)"
+          }
+        }
+      }
+    },
+    "currency_save_failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The currency balance could not be saved."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo guardar el saldo de monedas."
+          }
+        }
+      }
+    },
+    "currency_saved" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currency saved."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monedas guardadas."
+          }
+        }
+      }
+    },
+    "currency_silver" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Silver (sp)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plata (sp)"
+          }
+        }
+      }
+    },
+    "currency_title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currency"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monedas"
+          }
+        }
+      }
+    },
+    "currency_total_cp" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total in cp"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total en cp"
+          }
+        }
+      }
+    },
+    "currency_total_gp" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total in gp"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total en gp"
           }
         }
       }
@@ -3633,6 +3844,7 @@
       }
     },
     "spell_not_found" : {
+      "comment" : "Spell not found",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3967,6 +4179,23 @@
         }
       }
     },
+    "token_export_failed" : {
+      "comment" : "VTT token export failure",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The token could not be exported."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo exportar el token."
+          }
+        }
+      }
+    },
     "Tools" : {
 
     },
@@ -4019,6 +4248,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Infracomún"
+          }
+        }
+      }
+    },
+    "validation_invalid_ability_scores" : {
+      "comment" : "Validation: ability scores do not match selected assignment method",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ability scores do not match the selected assignment method."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las puntuaciones no coinciden con el método seleccionado."
+          }
+        }
+      }
+    },
+    "validation_invalid_equipment" : {
+      "comment" : "Validation: invalid equipment selection",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose valid starting equipment or a starting wealth option."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige equipo inicial válido o una opción de riqueza inicial."
+          }
+        }
+      }
+    },
+    "validation_invalid_skill_count" : {
+      "comment" : "Validation: wrong number of class skills (2 params: expected, actual)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose %1$d class skills; currently selected: %2$d."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige %1$d habilidades de clase; seleccionadas: %2$d."
+          }
+        }
+      }
+    },
+    "validation_invalid_spell" : {
+      "comment" : "Validation: selected spell is not available (1 param: spell name)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The selected spell is not available or exceeds the allowed count: %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El conjuro seleccionado no está disponible o supera el límite permitido: %@."
+          }
+        }
+      }
+    },
+    "validation_missing_choice_for_field" : {
+      "comment" : "Validation: missing required choice for a specific field (1 param: field label)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a value for %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un valor para %@."
+          }
+        }
+      }
+    },
+    "validation_missing_choice_generic" : {
+      "comment" : "Validation: missing required choice (generic)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete the required choices."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completa las selecciones obligatorias."
           }
         }
       }

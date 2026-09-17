@@ -10,6 +10,7 @@ import Foundation
 /// Loads the immutable SRD catalog bundled with the application. The historical
 /// filename remains only because it already belongs to the Xcode target.
 final class BundledRulesRepository: RulesRepository {
+    private let lock = NSLock()
     private let bundle: Bundle
     private var cache: [RulesLocale: RulesCatalog] = [:]
 
@@ -18,6 +19,7 @@ final class BundledRulesRepository: RulesRepository {
     }
 
     func catalog(locale: RulesLocale) throws -> RulesCatalog {
+        lock.lock(); defer { lock.unlock() }
         if let cached = cache[locale] { return cached }
         let name = "rules_\(locale.rawValue)"
         guard let url = bundle.url(forResource: name, withExtension: "json") else {

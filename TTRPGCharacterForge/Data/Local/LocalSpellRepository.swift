@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CryptoKit
 
 /// Loads spell data from resources bundled with the application.
 final class LocalSpellRepository: SpellRepository {
@@ -28,8 +29,11 @@ final class LocalSpellRepository: SpellRepository {
         fetchAllSpells { result in
             completion(result.flatMap { spells in
                 guard let spell = spells.first(where: { $0.id == id }) else {
-                    // FIXME: Add a localized description to the spell-not-found error. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814262668
-                    return .failure(NSError(domain: "LocalSpellRepository", code: 404))
+                    return .failure(NSError(
+                        domain: "LocalSpellRepository",
+                        code: 404,
+                        userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("spell_not_found", comment: "Spell not found")]
+                    ))
                 }
                 return .success(spell)
             })
@@ -85,6 +89,7 @@ final class LocalSpellRepository: SpellRepository {
               !rule.classIDs.isEmpty else { return nil }
         let classes = rule.classIDs.compactMap(ClassType.init(rawValue:))
         return Spell(
+            id: Self.stableUUID(for: rule.id),
             stableID: rule.id,
             name: rule.name,
             level: rule.level,
@@ -104,5 +109,11 @@ final class LocalSpellRepository: SpellRepository {
             isRitual: rule.ritual,
             requiresConcentration: rule.concentration
         )
+    }
+
+    private static func stableUUID(for value: String) -> UUID {
+        let digest = SHA256.hash(data: Data(value.utf8))
+        let bytes = Array(digest.prefix(16))
+        return UUID(uuid: (bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]))
     }
 }
