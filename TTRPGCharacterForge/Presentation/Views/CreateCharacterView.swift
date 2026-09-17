@@ -212,8 +212,8 @@ struct CreateCharacterView: View {
     private var reviewStep: some View {
         Section("character_review") {
             LabeledContent("character_name", value: viewModel.character.name)
-            LabeledContent("character_race", value: viewModel.races.first(where: { $0.id == viewModel.character.raceID })?.name ?? "—")
-            LabeledContent("character_class", value: viewModel.classes.first(where: { $0.id == viewModel.character.classID })?.name ?? "—")
+            LabeledContent("character_race", value: viewModel.races.first { $0.id == viewModel.character.raceID }?.name ?? "—")
+            LabeledContent("character_class", value: viewModel.classes.first { $0.id == viewModel.character.classID }?.name ?? "—")
             if let stats = viewModel.derivedStats {
                 LabeledContent("character_armor_class", value: "\(stats.armorClass)")
                 LabeledContent("character_hit_points", value: "\(stats.hitPoints)")
