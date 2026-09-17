@@ -3843,6 +3843,59 @@
         }
       }
     },
+    "rules_error_resource_missing" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Missing rules resource: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falta el recurso de reglas: %@" } }
+      }
+    },
+    "rules_error_invalid_data" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Invalid rules data: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Datos de reglas no válidos: %@" } }
+      }
+    },
+    "rules_error_wrong_ruleset" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unsupported ruleset: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conjunto de reglas no compatible: %@" } }
+      }
+    },
+    "rules_error_duplicate_id" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Duplicate rule ID: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "ID de regla duplicado: %@" } }
+      }
+    },
+    "rules_error_dangling_reference" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unknown rule reference: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Referencia de regla desconocida: %@" } }
+      }
+    },
+    "rules_error_incomplete_translation" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Missing localized rules text: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falta texto localizado de reglas: %@" } }
+      }
+    },
+    "spell_catalog_read_only" : {
+      "comment" : "Bundled SRD spells cannot be edited",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bundled SRD spells are read-only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los conjuros SRD incluidos son de solo lectura."
+          }
+        }
+      }
+    },
     "spell_not_found" : {
       "comment" : "Spell not found",
       "localizations" : {

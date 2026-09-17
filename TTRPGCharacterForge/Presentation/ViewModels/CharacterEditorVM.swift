@@ -7,8 +7,8 @@
 
 import Foundation
 
-@MainActor
 /// Manages editable character state and creation-step validation.
+@MainActor
 final class CharacterEditorVM: ObservableObject {
     private let createCharacterUseCase: CreateCharacterUseCase
     private let updateAbilityScoreUseCase: UpdateAbilityScoreUseCase
@@ -85,6 +85,7 @@ final class CharacterEditorVM: ObservableObject {
 
     func complete() async -> Bool {
         do {
+            autosaveTask?.cancel()
             var completed = character
             try createCharacterUseCase.validateForCompletion(completed, catalog: catalog)
             completed.state = .completed
@@ -109,15 +110,17 @@ final class CharacterEditorVM: ObservableObject {
                 try await Task.sleep(for: .milliseconds(100))
                 try Task.checkCancellation()
                 try await self?.saveCharacterUseCase.saveCharacter(snapshot)
+            } catch {
+                guard !(error is CancellationError) else { return }
+                self?.errorMessage = error.localizedDescription
             }
-            catch is CancellationError { }
-            catch { self?.errorMessage = error.localizedDescription }
         }
     }
 
     func applyRaceBonuses() {
         character.racialAbilityBonuses = catalog.race(id: character.raceID)?.abilityBonuses ?? .zero
         refreshDerivedStats()
+        autosave()
     }
 
     func toggleSkill(_ id: String) {
@@ -151,8 +154,10 @@ final class CharacterEditorVM: ObservableObject {
 
     func importPortrait(_ data: Data) {
         do {
-            if let existing = character.portrait { try? portraitStore.delete(existing) }
-            character.portrait = try portraitStore.save(data, for: character.id)
+            let previousPortrait = character.portrait
+            let replacement = try portraitStore.save(data, for: character.id)
+            character.portrait = replacement
+            if let previousPortrait { try? portraitStore.delete(previousPortrait) }
             autosave()
         } catch { errorMessage = error.localizedDescription }
     }

@@ -10,10 +10,10 @@ final class US048CurrencyConverterTests: XCTestCase {
             copper: "105", silver: "11", electrum: "3", gold: "12", platinum: "2"
         ))
 
-        XCTAssertEqual(result.totalCopper, 3_585)
+        XCTAssertEqual(result.totalCopper, 3_565)
         XCTAssertEqual(
             result.balance,
-            CurrencyBalance(copper: 5, silver: 3, electrum: 1, gold: 5, platinum: 3)
+            CurrencyBalance(copper: 5, silver: 1, electrum: 1, gold: 5, platinum: 3)
         )
     }
 

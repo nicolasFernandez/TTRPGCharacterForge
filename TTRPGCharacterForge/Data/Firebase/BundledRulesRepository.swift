@@ -18,6 +18,8 @@ final class BundledRulesRepository: RulesRepository {
         self.bundle = bundle
     }
 
+    // The load/cache/error branches are intentionally kept together for atomic catalog loading.
+    // swiftlint:disable:next cyclomatic_complexity
     func catalog(locale: RulesLocale) throws -> RulesCatalog {
         lock.lock(); defer { lock.unlock() }
         if let cached = cache[locale] { return cached }
@@ -28,6 +30,9 @@ final class BundledRulesRepository: RulesRepository {
         do {
             let data = try Data(contentsOf: url)
             let catalog = try JSONDecoder().decode(RulesCatalog.self, from: data)
+            guard catalog.locale == locale.rawValue else {
+                throw RulesCatalogError.invalidData("rules_error_locale_mismatch")
+            }
             try RulesCatalogValidator().validate(catalog)
             cache[locale] = catalog
             return catalog
@@ -41,6 +46,7 @@ final class BundledRulesRepository: RulesRepository {
 
 /// Verifies cross-references and invariants in a decoded rules catalog.
 struct RulesCatalogValidator {
+    // swiftlint:disable:next cyclomatic_complexity
     func validate(_ catalog: RulesCatalog) throws {
         guard catalog.rulesetID == CharacterDocument.rulesetID else {
             throw RulesCatalogError.wrongRuleset(catalog.rulesetID)

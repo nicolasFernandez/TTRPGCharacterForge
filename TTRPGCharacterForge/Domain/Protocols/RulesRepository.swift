@@ -144,12 +144,27 @@ enum RulesCatalogError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .resourceMissing(let value): "Missing rules resource: \(value)"
-        case .invalidData(let value): "Invalid rules data: \(value)"
-        case .wrongRuleset(let value): "Unsupported ruleset: \(value)"
-        case .duplicateID(let value): "Duplicate rule ID: \(value)"
-        case .danglingReference(let value): "Unknown rule reference: \(value)"
-        case .incompleteTranslation(let value): "Missing localized rules text: \(value)"
+        case .resourceMissing(let value):
+            String(format: NSLocalizedString("rules_error_resource_missing", comment: "Missing rules resource"), value)
+        case .invalidData(let value):
+            String(format: NSLocalizedString("rules_error_invalid_data", comment: "Invalid rules data"), value)
+        case .wrongRuleset(let value):
+            String(format: NSLocalizedString("rules_error_wrong_ruleset", comment: "Unsupported ruleset"), value)
+        case .duplicateID(let value):
+            String(format: NSLocalizedString("rules_error_duplicate_id", comment: "Duplicate rule ID"), value)
+        case .danglingReference(let value):
+            String(
+                format: NSLocalizedString("rules_error_dangling_reference", comment: "Unknown rule reference"),
+                value
+            )
+        case .incompleteTranslation(let value):
+            String(
+                format: NSLocalizedString(
+                    "rules_error_incomplete_translation",
+                    comment: "Missing localized rules text"
+                ),
+                value
+            )
         }
     }
 }

@@ -26,8 +26,8 @@ Feature: Manage a character's money with the currency converter
   Scenario: Normalize a mixed balance using every SRD denomination
     Given the currency converter is open
     When the player enters 105 cp, 11 sp, 3 ep, 12 gp, and 2 pp
-    Then the exact total is 3585 cp
-    And the normalized balance is 3 pp, 5 gp, 1 ep, 3 sp, and 5 cp
+    Then the exact total is 3565 cp
+    And the normalized balance is 3 pp, 5 gp, 1 ep, 1 sp, and 5 cp
 
   @AC-002 @AC-003 @SC-002
   Scenario Outline: Convert each denomination in both higher and lower directions

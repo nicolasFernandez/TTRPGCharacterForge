@@ -79,13 +79,18 @@ struct ComputeDerivedStatsUseCase {
         catalog: RulesCatalog,
         dexterityModifier: Int
     ) -> Int {
-        let equippedArmor = catalog.equipment
-            .filter { character.selectedEquipmentIDs.contains($0.id) && $0.kind == .armor }
+        let equippedItems = catalog.equipment.filter { character.selectedEquipmentIDs.contains($0.id) }
+        let equippedArmor = equippedItems
+            .filter { $0.kind == .armor && $0.id != "shield" && $0.id != "wooden-shield" }
             .max { ($0.armorClass ?? 0) < ($1.armorClass ?? 0) }
+        let shieldBonus = equippedItems
+            .filter { $0.id == "shield" || $0.id == "wooden-shield" }
+            .map { $0.armorClass ?? 0 }
+            .max() ?? 0
         guard let armor = equippedArmor, let base = armor.armorClass else {
-            return 10 + dexterityModifier
+            return 10 + dexterityModifier + shieldBonus
         }
-        return base + min(dexterityModifier, armor.dexterityCap ?? dexterityModifier)
+        return base + min(dexterityModifier, armor.dexterityCap ?? dexterityModifier) + shieldBonus
     }
 }
 
@@ -97,25 +102,48 @@ enum CharacterValidationError: LocalizedError, Equatable {
     case invalidSpell(String)
     case invalidEquipment
 
-    // FIXME: Localize validation errors and avoid exposing internal field identifiers to users.
     var errorDescription: String? {
         switch self {
-        case .missingRequiredChoice(let field):
+        case let .missingRequiredChoice(field):
             // Prefer a user-facing localized field label (e.g. "character_race") and fall back to
             // a generic validation message if no friendly label exists for the internal id.
             let fieldKey = "character_\(field)"
             let localizedField = NSLocalizedString(fieldKey, comment: "Field label for validation messages")
             if localizedField != fieldKey {
-                return String(format: NSLocalizedString("validation_missing_choice_for_field", comment: "Validation: missing required choice for a specific field (1 param: field label)"), localizedField)
-            } else {
-                return NSLocalizedString("validation_missing_choice_generic", comment: "Validation: missing required choice (generic)")
+                return String(
+                    format: NSLocalizedString(
+                        "validation_missing_choice_for_field",
+                        comment: "Validation: missing required choice for a specific field (1 param: field label)"
+                    ),
+                    localizedField
+                )
             }
+            return NSLocalizedString(
+                "validation_missing_choice_generic",
+                comment: "Validation: missing required choice (generic)"
+            )
         case .invalidAbilityScores:
-            return NSLocalizedString("validation_invalid_ability_scores", comment: "Validation: ability scores do not match selected assignment method")
-        case .invalidSkillCount(let expected, let actual):
-            return String(format: NSLocalizedString("validation_invalid_skill_count", comment: "Validation: wrong number of class skills (2 params: expected, actual)"), expected, actual)
+            return NSLocalizedString(
+                "validation_invalid_ability_scores",
+                comment: "Validation: ability scores do not match selected assignment method"
+            )
+        case let .invalidSkillCount(expected, actual):
+            return String(
+                format: NSLocalizedString(
+                    "validation_invalid_skill_count",
+                    comment: "Validation: wrong number of class skills (2 params: expected, actual)"
+                ),
+                expected,
+                actual
+            )
         case .invalidSpell(let spell):
-            return String(format: NSLocalizedString("validation_invalid_spell", comment: "Validation: selected spell is not available (1 param: spell name)"), spell)
+            return String(
+                format: NSLocalizedString(
+                    "validation_invalid_spell",
+                    comment: "Validation: selected spell is not available (1 param: spell name)"
+                ),
+                spell
+            )
         case .invalidEquipment:
             return NSLocalizedString("validation_invalid_equipment", comment: "Validation: invalid equipment selection")
         }

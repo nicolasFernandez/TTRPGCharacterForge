@@ -8,10 +8,11 @@
 import Foundation
 import SwiftData
 
-@Model
 /// SwiftData record used to persist an encoded character document.
+@Model
 final class CharacterRecord {
-    @Attribute(.unique) var id: UUID
+    @Attribute(.unique)
+    var id: UUID
     var name: String
     var classID: String?
     var stateValue: String
@@ -47,7 +48,10 @@ enum CharacterStoreError: LocalizedError {
         case .notFound:
             NSLocalizedString("character_store_not_found", comment: "Character persistence record was not found")
         case .unsupportedSchema:
-            NSLocalizedString("character_store_unsupported_schema", comment: "Character persistence schema is unsupported")
+            NSLocalizedString(
+                "character_store_unsupported_schema",
+                comment: "Character persistence schema is unsupported"
+            )
         case .corrupted:
             NSLocalizedString("character_store_corrupted", comment: "Character persistence record is corrupted")
         }
@@ -56,12 +60,13 @@ enum CharacterStoreError: LocalizedError {
 
 /// Local-only repository. The historical filename is retained to avoid a risky Xcode
 /// project-file migration; no Firestore APIs are used.
-@MainActor
 /// Stores character documents in the app's SwiftData model container.
+@MainActor
 final class SwiftDataCharacterRepository: CharacterRepository {
     private let context: ModelContext
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private let legacyDecoder: JSONDecoder
     private let portraitStore: PortraitStore
 
     init(context: ModelContext, portraitStore: PortraitStore) {
@@ -71,6 +76,8 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         decoder = JSONDecoder()
         encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
+        legacyDecoder = JSONDecoder()
+        legacyDecoder.dateDecodingStrategy = .secondsSince1970
     }
 
     func fetchAll() async throws -> [CharacterDocument] {
@@ -99,7 +106,10 @@ final class SwiftDataCharacterRepository: CharacterRepository {
     func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument {
         var copy = character
         copy.id = UUID()
-        let suffix = NSLocalizedString("character_duplicate_suffix", comment: "Suffix added to duplicated character names")
+        let suffix = NSLocalizedString(
+            "character_duplicate_suffix",
+            comment: "Suffix added to duplicated character names"
+        )
         copy.name = character.name.isEmpty ? suffix : "\(character.name) \(suffix)"
         copy.state = .draft
         copy.createdAt = Date()
@@ -128,7 +138,12 @@ final class SwiftDataCharacterRepository: CharacterRepository {
 
     private func decode(_ record: CharacterRecord) throws -> CharacterDocument {
         do {
-            let document = try decoder.decode(CharacterDocument.self, from: record.payload)
+            let document: CharacterDocument
+            do {
+                document = try decoder.decode(CharacterDocument.self, from: record.payload)
+            } catch {
+                document = try legacyDecoder.decode(CharacterDocument.self, from: record.payload)
+            }
             guard document.schemaVersion == CharacterDocument.currentSchemaVersion else {
                 throw CharacterStoreError.unsupportedSchema(document.schemaVersion)
             }

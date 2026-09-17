@@ -204,6 +204,9 @@ do {
     let complexity = try decode(ComplexityReport.self, from: arguments[0])
     let coverage = try decode(CoverageReport.self, from: arguments[1])
     let results = try calculate(complexity: complexity, coverage: coverage)
+    guard !results.isEmpty else {
+        throw ReportError.message("No measurable methods were found; refusing to pass an empty CRAP report.")
+    }
     render(results, threshold: threshold)
 
     if results.contains(where: { $0.crap > threshold }) {
