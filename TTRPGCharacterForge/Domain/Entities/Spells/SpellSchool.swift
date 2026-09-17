@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum SpellSchool: String, CaseIterable {
+enum SpellSchool: String, CaseIterable, Hashable {
     case abjuration
     case conjuration
     case divination
