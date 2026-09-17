@@ -133,7 +133,7 @@ The UI test should query by identifier, wait with bounded predicate expectations
 ## Assertion design by UI ID
 
 - `UI-001`: launch `us048-zero` without `-ui-start-route`; open `character.row.currency-qa`, invoke `character.currency.open`, and assert the root, five editable fields, total, and apply action exist and become hittable after semantic scrolling.
-- `UI-002`: enter `105 cp`, `11 sp`, `3 ep`, `12 gp`, `2 pp`; assert `currency.total-cp == "3585 cp"`; apply; assert field values `pp=3`, `gp=5`, `ep=1`, `sp=3`, `cp=5`.
+- `UI-002`: enter `105 cp`, `11 sp`, `3 ep`, `12 gp`, `2 pp`; assert `currency.total-cp == "3565 cp"`; apply; assert field values `pp=3`, `gp=5`, `ep=1`, `sp=1`, `cp=5`.
 - `UI-003`: reset for every examples-table row and assert the exact copper total plus canonical field values, including the lower-value `1 gp`, `1 sp`, and `1 cp` rows from `SC-002` even though the manual procedure summarizes them.
 - `UI-004`: use `us048-existing`; capture the two equipment identifiers, enter only `250 cp`, apply, assert `2 gp + 1 ep`, relaunch without reset, assert the same balance and both equipment items.
 - `UI-005`: use `us048-legacy-37-gp`; assert initial fields show `37 gp`, apply, relaunch without reset, assert `3 pp + 7 gp` and both equipment items.

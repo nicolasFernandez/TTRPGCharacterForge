@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Persists a character document. Validation is performed by the completion use case.
+/// Persists a character document. Completion validation is performed by the editor use case.
 struct SaveCharacterUseCase {
     private let repository: CharacterRepository
 

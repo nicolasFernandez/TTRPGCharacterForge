@@ -72,7 +72,7 @@ Run `QA-001`, `QA-005`, and `QA-009` across all four environments. Run the remai
 | Step | Human action | Expected result | Actual result | Status | Evidence |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | Enter the test data in the five matching fields. | Every nonnegative whole value is accepted. | Not run | Not run | Not run |
-| 2 | Invoke the converter/apply action. | The normalized balance is `3 pp, 5 gp, 1 ep, 3 sp, 5 cp`; its exact value is `3585 cp`. | Not run | Not run | Not run |
+| 2 | Invoke the converter/apply action. | The normalized balance is `3 pp, 5 gp, 1 ep, 1 sp, 5 cp`; its exact value is `3565 cp`. | Not run | Not run | Not run |
 
 ## QA-003: Convert in higher and lower directions
 

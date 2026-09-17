@@ -4,8 +4,6 @@ import SwiftUI
 /// while sharing the same domain and repositories.
 struct ContentView: View {
     let compositionRoot: CompositionRoot
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-
     var body: some View {
         if UIDevice.current.userInterfaceIdiom == .pad {
             TabletRootView(compositionRoot: compositionRoot)
