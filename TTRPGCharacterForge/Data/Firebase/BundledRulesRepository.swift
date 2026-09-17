@@ -31,7 +31,12 @@ final class BundledRulesRepository: RulesRepository {
             let data = try Data(contentsOf: url)
             let catalog = try JSONDecoder().decode(RulesCatalog.self, from: data)
             guard catalog.locale == locale.rawValue else {
-                throw RulesCatalogError.invalidData("rules_error_locale_mismatch")
+                throw RulesCatalogError.invalidData(
+                    NSLocalizedString(
+                        "rules_error_locale_mismatch",
+                        comment: "Rules catalog locale does not match the requested locale"
+                    )
+                )
             }
             try RulesCatalogValidator().validate(catalog)
             cache[locale] = catalog

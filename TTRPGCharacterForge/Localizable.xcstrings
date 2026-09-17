@@ -3528,6 +3528,125 @@
         }
       }
     },
+    "rules_error_dangling_reference" : {
+      "comment" : "Unknown rule reference",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown rule reference: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referencia de regla desconocida: %@"
+          }
+        }
+      }
+    },
+    "rules_error_duplicate_id" : {
+      "comment" : "Duplicate rule ID",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate rule ID: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de regla duplicado: %@"
+          }
+        }
+      }
+    },
+    "rules_error_incomplete_translation" : {
+      "comment" : "Missing localized rules text",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missing localized rules text: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falta texto localizado de reglas: %@"
+          }
+        }
+      }
+    },
+    "rules_error_invalid_data" : {
+      "comment" : "Invalid rules data",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid rules data: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos de reglas no válidos: %@"
+          }
+        }
+      }
+    },
+    "rules_error_locale_mismatch" : {
+      "comment" : "Rules catalog locale does not match the requested locale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The rules catalog locale does not match the requested locale."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El idioma del catálogo de reglas no coincide con el idioma solicitado."
+          }
+        }
+      }
+    },
+    "rules_error_resource_missing" : {
+      "comment" : "Missing rules resource",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missing rules resource: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falta el recurso de reglas: %@"
+          }
+        }
+      }
+    },
+    "rules_error_wrong_ruleset" : {
+      "comment" : "Unsupported ruleset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsupported ruleset: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conjunto de reglas no compatible: %@"
+          }
+        }
+      }
+    },
     "Saving Throw" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3763,6 +3882,23 @@
         }
       }
     },
+    "spell_catalog_read_only" : {
+      "comment" : "Bundled SRD spells cannot be edited",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bundled SRD spells are read-only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los conjuros SRD incluidos son de solo lectura."
+          }
+        }
+      }
+    },
     "spell_components" : {
       "localizations" : {
         "en" : {
@@ -3839,59 +3975,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nivel de Conjuro"
-          }
-        }
-      }
-    },
-    "rules_error_resource_missing" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Missing rules resource: %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falta el recurso de reglas: %@" } }
-      }
-    },
-    "rules_error_invalid_data" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Invalid rules data: %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Datos de reglas no válidos: %@" } }
-      }
-    },
-    "rules_error_wrong_ruleset" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unsupported ruleset: %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conjunto de reglas no compatible: %@" } }
-      }
-    },
-    "rules_error_duplicate_id" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Duplicate rule ID: %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "ID de regla duplicado: %@" } }
-      }
-    },
-    "rules_error_dangling_reference" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unknown rule reference: %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Referencia de regla desconocida: %@" } }
-      }
-    },
-    "rules_error_incomplete_translation" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Missing localized rules text: %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falta texto localizado de reglas: %@" } }
-      }
-    },
-    "spell_catalog_read_only" : {
-      "comment" : "Bundled SRD spells cannot be edited",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bundled SRD spells are read-only."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los conjuros SRD incluidos son de solo lectura."
           }
         }
       }
@@ -4305,6 +4388,23 @@
         }
       }
     },
+    "validation_duplicate_spell_selection" : {
+      "comment" : "Validation: the same spell was selected more than once",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The same spell cannot be selected more than once."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No puedes seleccionar el mismo conjuro más de una vez."
+          }
+        }
+      }
+    },
     "validation_invalid_ability_scores" : {
       "comment" : "Validation: ability scores do not match selected assignment method",
       "localizations" : {
@@ -4403,6 +4503,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Completa las selecciones obligatorias."
+          }
+        }
+      }
+    },
+    "validation_spell_count_exceeded" : {
+      "comment" : "Validation: selected spell counts exceed the class limits",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected spells exceed the allowed limits (cantrips: %1$d, leveled spells: %2$d)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los conjuros seleccionados superan los límites permitidos (trucos: %1$d, conjuros con nivel: %2$d)."
           }
         }
       }
