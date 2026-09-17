@@ -7,22 +7,23 @@
 
 import SwiftUI
 
+/// Summarizes a spell for display in a list.
 struct SpellRowView: View {
     let spell: Spell
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(spell.name)
                     .font(.headline)
-                
+
                 Spacer()
-                
+
                 Text(spell.levelString)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             Text(spell.school.rawValue.capitalized)
                 .font(.caption)
                 .foregroundColor(.secondary)

@@ -9,7 +9,7 @@ import Foundation
 
 final class ImageGenViewModel: ObservableObject {
     private let generateCharacterArtUseCase: GenerateCharacterArtUseCase
-    
+
     init(generateCharacterArtUseCase: GenerateCharacterArtUseCase) {
         self.generateCharacterArtUseCase = generateCharacterArtUseCase
     }

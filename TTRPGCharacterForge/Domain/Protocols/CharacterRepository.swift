@@ -7,9 +7,12 @@
 
 import Foundation
 
+@MainActor
+/// Defines persistence operations for character documents.
 protocol CharacterRepository {
-    func fetchAll(completion: @escaping (Result<[Character], Error>) -> Void)
-    func fetch(withID id: UUID, completion: @escaping (Result<Character, Error>) -> Void)
-    func save(_ character: Character, completion: @escaping (Result<Void, Error>) -> Void)
-    func delete(_ character: Character, completion: @escaping (Result<Void, Error>) -> Void)
+    func fetchAll() async throws -> [CharacterDocument]
+    func fetch(withID id: UUID) async throws -> CharacterDocument
+    func save(_ character: CharacterDocument) async throws
+    func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument
+    func delete(withID id: UUID) async throws
 }

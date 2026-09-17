@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct TabBarView: View {
-
     var tabbarItems: [String]
     @Binding var selectedIndex: Int
     @Namespace private var menuItemTransition
@@ -18,18 +17,16 @@ struct TabBarView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
                     ForEach(tabbarItems.indices, id: \.self) { index in
-
                         TabbarItem(name: tabbarItems[index], isActive: selectedIndex == index, namespace: menuItemTransition)
                             .onTapGesture {
                                 withAnimation(.easeInOut) {
                                     selectedIndex = index
                                 }
                             }
-                        
                     }
                 }
             }
-            .onChange(of: selectedIndex) { index in
+            .onChange(of: selectedIndex) { _, index in
                 withAnimation(.easeInOut) {
                     scrollView.scrollTo(index, anchor: .center)
                 }
@@ -37,7 +34,6 @@ struct TabBarView: View {
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(25)
-
         }
     }
 }

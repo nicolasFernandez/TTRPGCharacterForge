@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Summarizes a character class for display in a list.
 struct ClassRow: View {
     var classType: ClassType
     var body: some View {

@@ -8,13 +8,14 @@
 import SwiftUI
 
 final class Coordinator {
+    private unowned let compositionRoot: CompositionRoot
+
+    init(compositionRoot: CompositionRoot) {
+        self.compositionRoot = compositionRoot
+    }
 
     @ViewBuilder
     func makeView() -> some View {
-        if #available(iOS 17.0, *) {
-            ContentView()
-        } else {
-            // Fallback on earlier versions
-        }
+        ContentView(compositionRoot: compositionRoot)
     }
 }

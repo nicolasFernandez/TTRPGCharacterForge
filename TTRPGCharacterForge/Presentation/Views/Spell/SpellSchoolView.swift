@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Displays the available spell schools as filter choices.
 struct SpellSchoolView: View {
     var spellSchool: SpellSchool
     var body: some View {

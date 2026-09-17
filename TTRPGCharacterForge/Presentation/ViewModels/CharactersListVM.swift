@@ -7,10 +7,11 @@
 
 import Foundation
 
+/// Supplies legacy character data to the original character-list interface.
 final class CharacterListViewModel: ObservableObject {
     private let loadCharactersUseCase: LoadCharactersUseCase
     private let saveCharacterUseCase: SaveCharacterUseCase
-    
+
     init(
         loadCharactersUseCase: LoadCharactersUseCase,
         saveCharacterUseCase: SaveCharacterUseCase

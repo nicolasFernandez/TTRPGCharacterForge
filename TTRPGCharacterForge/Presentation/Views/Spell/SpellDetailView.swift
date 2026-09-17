@@ -7,9 +7,10 @@
 
 import SwiftUI
 
+/// Presents the full rules text and metadata for a spell.
 struct SpellDetailView: View {
     let spell: Spell
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -17,12 +18,12 @@ struct SpellDetailView: View {
                     Text(spell.name)
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    
+
                     HStack {
                         Text(spell.levelString)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        
+
                         Text(spell.school.name.capitalized)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
@@ -35,7 +36,7 @@ struct SpellDetailView: View {
                         }
                     }
                 }
-                
+
                 Divider()
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -48,7 +49,7 @@ struct SpellDetailView: View {
                         value: spell.range
                     )
                     DetailRow(
-                        title:NSLocalizedString("spell_components", comment: ""),
+                        title: NSLocalizedString("spell_components", comment: ""),
                         value: formatComponents()
                     )
                     DetailRow(
@@ -56,9 +57,9 @@ struct SpellDetailView: View {
                         value: formatDuration()
                     )
                 }
-                
+
                 Divider()
-                
+
                 Text(spell.levelDescription)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -71,13 +72,13 @@ struct SpellDetailView: View {
                 }
 
                 Divider()
-                
+
                 VStack(alignment: .leading, spacing: 8) {
                     Text(
                         NSLocalizedString("spell_available_to", comment: "")
                     )
                     .font(.headline)
-                    
+
                     Text(formatClasses())
                         .foregroundColor(.secondary)
                 }
@@ -85,36 +86,36 @@ struct SpellDetailView: View {
             .padding()
         }
     }
-    
+
     private func formatComponents() -> String {
         var components: [String] = []
-        
+
         if spell.components.verbal {
             components.append("V")
         }
-        
+
         if spell.components.somatic {
             components.append("S")
         }
-        
+
         if spell.components.material {
             components.append("M")
             if let materialComponents = spell.components.materialComponents {
                 components.append("(\(materialComponents))")
             }
         }
-        
+
         return components.joined(separator: ", ")
     }
-    
+
     private func formatDuration() -> String {
         if spell.requiresConcentration {
-            return String(format: NSLocalizedString("spell_concentration", comment:""), spell.duration)
+            return String(format: NSLocalizedString("spell_concentration", comment: ""), spell.duration)
         } else {
             return spell.duration
         }
     }
-    
+
     private func formatClasses() -> String {
         return spell.classes.map { "\($0.name)" }.joined(separator: ", ")
     }
@@ -126,4 +127,3 @@ struct SpellDetailView_Previews: PreviewProvider {
         SpellDetailView(spell: spell)
     }
 }
-
