@@ -10,7 +10,8 @@ import SwiftUI
 /// Presents controls for narrowing the visible spell collection.
 struct FilterView: View {
     @ObservedObject var viewModel: SpellListViewModel
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.presentationMode)
+    var presentationMode
 
     let spellLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -19,13 +20,13 @@ struct FilterView: View {
             Form {
                 Section(header: Text(NSLocalizedString("spell_level", comment: ""))) {
                     ForEach(spellLevels, id: \.self) { level in
-                        Button(action: {
+                        Button {
                             if viewModel.selectedLevelFilter == level {
                                 viewModel.filterByLevel(nil)
                             } else {
                                 viewModel.filterByLevel(level)
                             }
-                        }) {
+                        } label: {
                             HStack {
                                 Text(
                                     level == 0 ?

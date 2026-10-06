@@ -5,7 +5,6 @@
 //  Created by Nicolas Alonso Fernandez Alarcon on 27-12-22.
 //
 
-import Foundation
 
 struct Skills {
     let acrobatics: Skill

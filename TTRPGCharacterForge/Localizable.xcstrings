@@ -41,16 +41,6 @@
         }
       }
     },
-    "%@: %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@: %2$lld"
-          }
-        }
-      }
-    },
     "%lld" : {
 
     },
@@ -681,6 +671,22 @@
         }
       }
     },
+    "character_choose_languages" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose %d additional languages."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige %d idiomas adicionales."
+          }
+        }
+      }
+    },
     "character_choose_portrait" : {
       "localizations" : {
         "en" : {
@@ -902,6 +908,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Iniciativa"
+          }
+        }
+      }
+    },
+    "character_languages" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Languages"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idiomas"
           }
         }
       }
@@ -1542,6 +1564,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Personajes"
+          }
+        }
+      }
+    },
+    "characters_unreadable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Characters that could not be opened"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personajes que no se pudieron abrir"
           }
         }
       }

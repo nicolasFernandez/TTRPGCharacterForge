@@ -47,7 +47,8 @@ struct SpellRowView_Previews: PreviewProvider {
                 materialComponents: "Saquito colgante"
             ),
             duration: "1 hora",
-            levelDescription: "Haces un hechizo que dura una hora", higherLevelsDescription: nil,
+            levelDescription: "Haces un hechizo que dura una hora",
+            higherLevelsDescription: nil,
             classes: [.bard, .cleric, .warlock]
         )
 

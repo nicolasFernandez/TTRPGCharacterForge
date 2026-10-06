@@ -7,13 +7,14 @@
 
 import Foundation
 
-@MainActor
 /// Loads and manages the collection of persisted characters.
+@MainActor
 final class CharacterListViewModel: ObservableObject {
     private let loadCharactersUseCase: LoadCharactersUseCase
     private let saveCharacterUseCase: SaveCharacterUseCase
     private var loadGeneration = UUID()
 
+    @Published var unreadableRecords: [UnreadableCharacterRecord] = []
     @Published var characters: [CharacterDocument] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
@@ -31,15 +32,23 @@ final class CharacterListViewModel: ObservableObject {
         loadGeneration = generation
         isLoading = true
         errorMessage = nil
+        defer { finishLoading(generation: generation) }
         do {
-            let loaded = try await loadCharactersUseCase.getAllCharacters()
+            let loaded = try await loadCharactersUseCase.getCharacterCollection()
             guard generation == loadGeneration else { return }
-            characters = loaded
+            characters = loaded.characters
+            unreadableRecords = loaded.unreadableRecords
         } catch is CancellationError {
         } catch {
             guard generation == loadGeneration else { return }
-            errorMessage = String(format: NSLocalizedString("characters_load_error", comment: ""), error.localizedDescription)
+            errorMessage = String(
+                format: NSLocalizedString("characters_load_error", comment: ""),
+                error.localizedDescription
+            )
         }
+    }
+
+    private func finishLoading(generation: UUID) {
         if generation == loadGeneration { isLoading = false }
     }
 
@@ -57,10 +66,12 @@ final class CharacterListViewModel: ObservableObject {
         }
     }
 
-    func delete(_ character: CharacterDocument) {
+    func delete(_ character: CharacterDocument) { delete(withID: character.id) }
+
+    func delete(withID id: UUID) {
         Task {
             do {
-                try await loadCharactersUseCase.delete(withID: character.id)
+                try await loadCharactersUseCase.delete(withID: id)
                 await loadCharacters()
             } catch { errorMessage = error.localizedDescription }
         }

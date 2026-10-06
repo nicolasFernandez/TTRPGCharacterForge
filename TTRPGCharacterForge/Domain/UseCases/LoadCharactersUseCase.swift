@@ -15,6 +15,10 @@ struct LoadCharactersUseCase {
         self.repository = repository
     }
 
+    func getCharacterCollection() async throws -> CharacterCollection {
+        try await repository.fetchCollection()
+    }
+
     func getAllCharacters() async throws -> [CharacterDocument] {
         try await repository.fetchAll()
     }

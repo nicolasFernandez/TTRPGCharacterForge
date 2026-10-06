@@ -1,5 +1,3 @@
-import Foundation
-
 extension String {
     func camelToSnakeCase() -> String {
         var newValue: String = ""

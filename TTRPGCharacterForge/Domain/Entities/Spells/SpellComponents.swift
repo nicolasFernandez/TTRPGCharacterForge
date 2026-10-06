@@ -5,7 +5,6 @@
 //  Created by Nicolas Alonso Fernandez Alarcon on 13-10-25.
 //
 
-import Foundation
 
 struct SpellComponents {
     let verbal: Bool

@@ -1,5 +1,3 @@
-import Foundation
-
 /// A character's exact five-denomination coin balance.
 struct CurrencyBalance: Codable, Equatable, Sendable {
     var copper: Int64

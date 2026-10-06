@@ -145,3 +145,6 @@ xcuserdata
 # **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.toptal.com/developers/gitignore/api/swift,swiftpackagemanager,swiftpm,macos,xcode
+
+# Python mutation gate bytecode cache
+scripts/quality/__pycache__/

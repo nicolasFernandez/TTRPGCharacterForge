@@ -19,7 +19,7 @@ final class LocalSpellRepository: SpellRepository {
     func fetchAllSpells(completion: @escaping (Result<[Spell], any Error>) -> Void) {
         do {
             let catalog = try rulesRepository.catalog(locale: .current)
-            completion(.success(catalog.spells.compactMap(Self.makeSpell)))
+            completion(.success(try catalog.spells.map(Self.makeSpell)))
         } catch {
             completion(.failure(error))
         }
@@ -94,10 +94,15 @@ final class LocalSpellRepository: SpellRepository {
         )))
     }
 
-    private static func makeSpell(_ rule: SpellRule) -> Spell? {
+    private static func makeSpell(_ rule: SpellRule) throws -> Spell {
         guard let school = SpellSchool(rawValue: rule.school),
-              !rule.classIDs.isEmpty else { return nil }
-        let classes = rule.classIDs.compactMap(ClassType.init(rawValue:))
+              !rule.classIDs.isEmpty else { throw RulesCatalogError.invalidData(rule.id) }
+        let classes = try rule.classIDs.map { id in
+            guard let characterClass = ClassType(rawValue: id) else {
+                throw RulesCatalogError.danglingReference(id)
+            }
+            return characterClass
+        }
         return Spell(
             id: Self.stableUUID(for: rule.id),
             stableID: rule.id,
@@ -112,13 +117,22 @@ final class LocalSpellRepository: SpellRepository {
                 material: rule.components.contains("M"),
                 materialComponents: nil
             ),
-            duration: rule.duration,
+            duration: Self.duration(for: rule),
             levelDescription: rule.description,
             higherLevelsDescription: rule.higherLevels,
             classes: classes,
             isRitual: rule.ritual,
             requiresConcentration: rule.concentration
         )
+    }
+
+    private static func duration(for rule: SpellRule) -> String {
+        guard rule.concentration else { return rule.duration }
+        let prefixes = ["Concentration, ", "Concentración, "]
+        if let prefix = prefixes.first(where: { rule.duration.hasPrefix($0) }) {
+            return String(rule.duration.dropFirst(prefix.count))
+        }
+        return rule.duration
     }
 
     private static func stableUUID(for value: String) -> UUID {

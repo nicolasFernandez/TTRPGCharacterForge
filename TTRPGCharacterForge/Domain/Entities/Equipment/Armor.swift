@@ -5,7 +5,6 @@
 //  Created by Nicolas Alonso Fernandez Alarcon on 26-12-22.
 //
 
-import Foundation
 
 struct Armor: Equipment {
     let name: String

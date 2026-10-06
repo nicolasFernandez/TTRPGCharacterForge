@@ -23,6 +23,7 @@ complexity_report="$artifact_root/swift-complexity.json"
 crap_report="$artifact_root/crap.md"
 crap_executable="$artifact_root/crap-report"
 version_report="$artifact_root/tool-versions.txt"
+compiler_log="$artifact_root/compiler.log"
 
 mkdir -p "$artifact_root"
 
@@ -32,7 +33,7 @@ mkdir -p "$artifact_root"
   swift-complexity --version
 } > "$version_report"
 
-QUALITY_RESULT_BUNDLE_PATH="$result_bundle" scripts/quality/run-unit-tests.sh
+QUALITY_RESULT_BUNDLE_PATH="$result_bundle" scripts/quality/run-unit-tests.sh 2>&1 | tee "$compiler_log"
 xcrun xccov view --report --json "$result_bundle" > "$coverage_report"
 
 set +e
@@ -48,6 +49,8 @@ fi
 set +e
 swiftlint lint --strict --config .swiftlint.yml --reporter xcode
 lint_status=$?
+swiftlint analyze --strict --config .swiftlint.yml --compiler-log-path "$compiler_log" --reporter xcode
+analyzer_status=$?
 set -e
 
 swiftc scripts/quality/crap-report.swift -o "$crap_executable"
@@ -59,9 +62,10 @@ set -e
 
 print "Quality artifacts: $artifact_root"
 print "SwiftLint exit status: $lint_status"
+print "SwiftLint analyzer exit status: $analyzer_status"
 print "swift-complexity exit status: $complexity_status"
 print "CRAP report exit status: $crap_status"
 
-if (( lint_status != 0 || complexity_status != 0 || crap_status != 0 )); then
+if (( lint_status != 0 || analyzer_status != 0 || complexity_status != 0 || crap_status != 0 )); then
   exit 1
 fi

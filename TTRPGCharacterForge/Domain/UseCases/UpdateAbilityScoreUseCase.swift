@@ -51,15 +51,46 @@ struct UpdateAbilityScoreUseCase {
         score: Int,
         method: AbilityAssignmentMethod
     ) throws {
-        let validScore: Bool
-        switch method {
-        case .standardArray: validScore = AbilityAssignmentService.standardArray.contains(score)
-        case .pointBuy: validScore = AbilityAssignmentService.pointCosts[score] != nil
-        case .rolled: validScore = (3...18).contains(score)
+        guard isValidScore(score, method: method) else {
+            throw CharacterValidationError.invalidAbilityScores
         }
-        guard validScore else { throw CharacterValidationError.invalidAbilityScores }
-        character.baseAbilities[ability] = score
+        let updated = try updatedScores(character: character, ability: ability, score: score, method: method)
+        character.baseAbilities = updated
         character.abilityMethod = method
         character.updatedAt = Date()
+    }
+    private func isValidScore(_ score: Int, method: AbilityAssignmentMethod) -> Bool {
+        switch method {
+        case .standardArray: AbilityAssignmentService.standardArray.contains(score)
+        case .pointBuy: AbilityAssignmentService.pointCosts[score] != nil
+        case .rolled: (3...18).contains(score)
+        }
+    }
+
+    private func updatedScores(
+        character: CharacterDocument,
+        ability: AbilityID,
+        score: Int,
+        method: AbilityAssignmentMethod
+    ) throws -> AbilityScoreSet {
+        var updated = character.abilityMethod == method ? character.baseAbilities : .zero
+        if method == .standardArray { swapOwner(of: score, with: ability, scores: &updated) }
+        updated[ability] = score
+        try validatePointBuyBudget(updated, method: method)
+        return updated
+    }
+
+    private func validatePointBuyBudget(_ scores: AbilityScoreSet, method: AbilityAssignmentMethod) throws {
+        guard method == .pointBuy else { return }
+        let cost = AbilityID.allCases.reduce(0) {
+            $0 + AbilityAssignmentService.pointCosts[scores[$1], default: 0]
+        }
+        guard cost <= 27 else { throw CharacterValidationError.invalidAbilityScores }
+    }
+
+    private func swapOwner(of score: Int, with ability: AbilityID, scores: inout AbilityScoreSet) {
+        if let previousOwner = AbilityID.allCases.first(where: { $0 != ability && scores[$0] == score }) {
+            scores[previousOwner] = scores[ability]
+        }
     }
 }

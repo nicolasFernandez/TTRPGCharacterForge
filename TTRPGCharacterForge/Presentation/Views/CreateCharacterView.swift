@@ -4,7 +4,8 @@ import PhotosUI
 /// Presents the guided workflow for creating and saving a character.
 struct CreateCharacterView: View {
     @StateObject var viewModel: CharacterEditorVM
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
 
     var body: some View {
@@ -22,20 +23,21 @@ struct CreateCharacterView: View {
                     Section { Text(error).foregroundStyle(.red) }
                 }
             }
-            .navigationTitle(viewModel.character.name.isEmpty ? String(localized: "character_create") : viewModel.character.name)
+            .disabled(viewModel.isLoading)
+            .navigationTitle(
+                viewModel.character.name.isEmpty ? String(localized: "character_create") : viewModel.character.name
+            )
             // FIXME: Keep the navigation title and toolbar attached to the Form or NavigationStack rather than child content. + https://github.com/nicolasFernandez/TTRPGCharacterForge/pull/115#discussion_r3814395276
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("done") { viewModel.autosave(); dismiss() }
+                    Button("done") {
+                        Task { if await viewModel.flushAutosave() { dismiss() } }
+                    }
+                    .disabled(viewModel.isLoading)
                 }
             }
-            .onChange(of: viewModel.character.classID) { _, newValue in
-                viewModel.character.archetypeID = nil
-                guard let rule = viewModel.classes.first(where: { $0.id == newValue }) else { return }
-                viewModel.character.selectedSkillIDs = viewModel.character.selectedSkillIDs.filter { rule.availableSkillIDs.contains($0) }
-                let availableSpellIDs = Set(viewModel.spells.map(\.id))
-                viewModel.character.selectedSpellIDs = viewModel.character.selectedSpellIDs.filter { availableSpellIDs.contains($0) }
-                viewModel.autosave()
+            .onChange(of: viewModel.character.classID) { _, _ in
+                viewModel.reconcileClassSelection()
             }
             .safeAreaInset(edge: .bottom) { navigationBar }
         }
@@ -70,11 +72,12 @@ struct CreateCharacterView: View {
                 Text("choose_prompt").tag(String?.none)
                 ForEach(viewModel.races) { Text($0.name).tag(Optional($0.id)) }
             }
-            .onChange(of: viewModel.character.raceID) { _, _ in
+            .onChange(of: viewModel.character.raceID) { oldValue, _ in
                 viewModel.character.subraceID = nil
-                viewModel.applyRaceBonuses()
+                viewModel.applyRaceBonuses(previousID: oldValue)
             }
-            if let race = viewModel.races.first(where: { $0.id == viewModel.character.raceID }), !race.subraces.isEmpty {
+            if let race = viewModel.races.first(where: { $0.id == viewModel.character.raceID }),
+               !race.subraces.isEmpty {
                 Picker("character_subrace", selection: $viewModel.character.subraceID) {
                     Text("choose_prompt").tag(String?.none)
                     ForEach(race.subraces) { Text($0.name).tag(Optional($0.id)) }
@@ -89,7 +92,8 @@ struct CreateCharacterView: View {
                 Text("choose_prompt").tag(String?.none)
                 ForEach(viewModel.classes) { Text($0.name).tag(Optional($0.id)) }
             }
-            if let rule = viewModel.classes.first(where: { $0.id == viewModel.character.classID }), !rule.archetypes.isEmpty {
+            if let rule = viewModel.classes.first(where: { $0.id == viewModel.character.classID }),
+               !rule.archetypes.isEmpty {
                 Picker("character_archetype", selection: $viewModel.character.archetypeID) {
                     Text("choose_prompt").tag(String?.none)
                     ForEach(rule.archetypes) { Text($0.name).tag(Optional($0.id)) }
@@ -104,17 +108,8 @@ struct CreateCharacterView: View {
                 Text("choose_prompt").tag(String?.none)
                 ForEach(viewModel.backgrounds) { Text($0.name).tag(Optional($0.id)) }
             }
-            .onChange(of: viewModel.character.backgroundID) { oldValue, newValue in
-                if let oldRule = viewModel.backgrounds.first(where: { $0.id == oldValue }) {
-                    viewModel.character.selectedSkillIDs.removeAll { oldRule.grantedSkillIDs.contains($0) }
-                    viewModel.character.selectedLanguageIDs.removeAll { oldRule.grantedLanguageIDs.contains($0) }
-                    viewModel.character.selectedEquipmentIDs.removeAll { oldRule.grantedEquipmentIDs.contains($0) }
-                }
-                guard let rule = viewModel.backgrounds.first(where: { $0.id == newValue }) else { return }
-                viewModel.character.selectedSkillIDs = Array(Set(viewModel.character.selectedSkillIDs + rule.grantedSkillIDs))
-                viewModel.character.selectedLanguageIDs = Array(Set(viewModel.character.selectedLanguageIDs + rule.grantedLanguageIDs))
-                viewModel.character.selectedEquipmentIDs = Array(Set(viewModel.character.selectedEquipmentIDs + rule.grantedEquipmentIDs))
-                viewModel.autosave()
+            .onChange(of: viewModel.character.backgroundID) { oldValue, _ in
+                viewModel.reconcileBackgroundSelection(previousID: oldValue)
             }
             TextField("character_traits", text: $viewModel.character.personality.traits, axis: .vertical)
             TextField("character_ideals", text: $viewModel.character.personality.ideals, axis: .vertical)
@@ -127,20 +122,6 @@ struct CreateCharacterView: View {
         AbilityAssignmentView(viewModel: viewModel)
     }
 
-    private var proficienciesStep: some View {
-        Section("character_proficiencies") {
-            if let rule = viewModel.classes.first(where: { $0.id == viewModel.character.classID }) {
-                Text(String(format: NSLocalizedString("character_choose_skills", comment: ""), rule.skillChoiceCount))
-                ForEach(viewModel.skills.filter { rule.availableSkillIDs.contains($0.id) }) { skill in
-                    Toggle(skill.name, isOn: Binding(
-                        get: { viewModel.character.selectedSkillIDs.contains(skill.id) },
-                        set: { _ in viewModel.toggleSkill(skill.id) }
-                    ))
-                }
-            } else { Text("character_choose_class_first") }
-        }
-    }
-
     private var equipmentStep: some View {
         Section("character_equipment") {
             Text("character_equipment_guidance")
@@ -151,17 +132,23 @@ struct CreateCharacterView: View {
                 ))
                 .accessibilityIdentifier("character.equipment.\(item.id)")
             }
-            TextField("character_starting_gold", value: Binding(
-                get: { viewModel.character.startingWealthGP ?? 0 },
-                set: {
-                    viewModel.character.startingWealthGP = $0 > 0 ? $0 : nil
-                    if $0 > 0 {
-                        viewModel.character.selectedEquipmentIDs = []
-                        viewModel.character.currencyBalance = nil
+            TextField(
+                "character_starting_gold",
+                value: Binding(
+                    get: { viewModel.character.startingWealthGP ?? 0 },
+                    set: {
+                        viewModel.character.startingWealthGP = $0 > 0 ? $0 : nil
+                        if $0 > 0 {
+                            viewModel.character.selectedEquipmentIDs = viewModel.backgrounds
+                                .first { $0.id == viewModel.character.backgroundID }?
+                                .grantedEquipmentIDs ?? []
+                            viewModel.character.currencyBalance = nil
+                        }
+                        viewModel.autosave()
                     }
-                    viewModel.autosave()
-                }
-            ), format: .number)
+                ),
+                format: .number
+            )
                 .keyboardType(.numberPad)
             NavigationLink {
                 CurrencyConverterView(viewModel: viewModel)
@@ -180,13 +167,20 @@ struct CreateCharacterView: View {
             } else {
                 Text("character_spells_guidance")
                 ForEach(viewModel.spells) { spell in
-                    Toggle("\(spell.name) · \(spell.level == 0 ? String(localized: "cantrip_text") : String(format: NSLocalizedString("level_text", comment: ""), spell.level))", isOn: Binding(
+                    Toggle(spellLabel(spell), isOn: Binding(
                         get: { viewModel.character.selectedSpellIDs.contains(spell.id) },
                         set: { _ in viewModel.toggleSpell(spell.id) }
                     ))
                 }
             }
         }
+    }
+
+    private func spellLabel(_ spell: SpellRule) -> String {
+        let level = spell.level == 0
+            ? String(localized: "cantrip_text")
+            : String(format: NSLocalizedString("level_text", comment: ""), spell.level)
+        return "\(spell.name) · \(level)"
     }
 
     private var portraitStep: some View {
@@ -198,7 +192,7 @@ struct CreateCharacterView: View {
             .onChange(of: selectedPhoto) { _, item in
                 Task {
                     if let data = try? await item?.loadTransferable(type: Data.self) {
-                        viewModel.importPortrait(data)
+                        await viewModel.importPortrait(data)
                     }
                 }
             }
@@ -206,47 +200,6 @@ struct CreateCharacterView: View {
                 Label("character_portrait_saved", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
             }
-        }
-    }
-
-    private var reviewStep: some View {
-        Section("character_review") {
-            LabeledContent("character_name", value: viewModel.character.name)
-            LabeledContent("character_race", value: viewModel.races.first { $0.id == viewModel.character.raceID }?.name ?? "—")
-            LabeledContent("character_class", value: viewModel.classes.first { $0.id == viewModel.character.classID }?.name ?? "—")
-            if let stats = viewModel.derivedStats {
-                LabeledContent("character_armor_class", value: "\(stats.armorClass)")
-                LabeledContent("character_hit_points", value: "\(stats.hitPoints)")
-            }
-            DisclosureGroup("character_overrides") {
-                TextField("character_armor_class", value: Binding(
-                    get: { viewModel.character.overrides.armorClass ?? viewModel.derivedStats?.armorClass ?? 10 },
-                    set: { viewModel.character.overrides.armorClass = $0; viewModel.autosave() }
-                ), format: .number)
-                TextField("character_hit_points", value: Binding(
-                    get: { viewModel.character.overrides.hitPoints ?? viewModel.derivedStats?.hitPoints ?? 1 },
-                    set: { viewModel.character.overrides.hitPoints = $0; viewModel.autosave() }
-                ), format: .number)
-                TextField("character_initiative", value: Binding(
-                    get: { viewModel.character.overrides.initiative ?? viewModel.derivedStats?.initiative ?? 0 },
-                    set: { viewModel.character.overrides.initiative = $0; viewModel.autosave() }
-                ), format: .number)
-                Button("character_reset_overrides") {
-                    viewModel.character.overrides = CharacterOverrides()
-                    viewModel.autosave()
-                }
-            }
-            Button("character_prepare_exports") { viewModel.prepareExports() }
-            if let pdf = viewModel.exportedPDF {
-                ShareLink(item: pdf) { Label("character_share_pdf", systemImage: "doc") }
-            }
-            if let token = viewModel.exportedToken {
-                ShareLink(item: token) { Label("character_share_token", systemImage: "circle.inset.filled") }
-            }
-            Button("character_complete") {
-                Task { if await viewModel.complete() { dismiss() } }
-            }
-            .buttonStyle(.borderedProminent)
         }
     }
 
@@ -339,6 +292,101 @@ private struct AbilityAssignmentView: View {
         case .pointBuy:
             for ability in AbilityID.allCases { viewModel.setAbility(ability, score: 8, method: .pointBuy) }
         case .rolled: applyRolls()
+        }
+    }
+}
+
+private extension CreateCharacterView {
+    private var reviewStep: some View {
+        Section("character_review") {
+            LabeledContent("character_name", value: viewModel.character.name)
+            LabeledContent(
+                "character_race",
+                value: viewModel.races.first { $0.id == viewModel.character.raceID }?.name ?? "—"
+            )
+            LabeledContent(
+                "character_class",
+                value: viewModel.classes.first { $0.id == viewModel.character.classID }?.name ?? "—"
+            )
+            if let stats = viewModel.derivedStats {
+                LabeledContent("character_armor_class", value: "\(stats.armorClass)")
+                LabeledContent("character_hit_points", value: "\(stats.hitPoints)")
+            }
+            DisclosureGroup("character_overrides") {
+                TextField(
+                    "character_armor_class",
+                    value: Binding(
+                        get: { viewModel.character.overrides.armorClass ?? viewModel.derivedStats?.armorClass ?? 10 },
+                        set: { viewModel.character.overrides.armorClass = $0; viewModel.autosave() }
+                    ),
+                    format: .number
+                )
+                TextField(
+                    "character_hit_points",
+                    value: Binding(
+                        get: { viewModel.character.overrides.hitPoints ?? viewModel.derivedStats?.hitPoints ?? 1 },
+                        set: { viewModel.character.overrides.hitPoints = $0; viewModel.autosave() }
+                    ),
+                    format: .number
+                )
+                TextField(
+                    "character_initiative",
+                    value: Binding(
+                        get: { viewModel.character.overrides.initiative ?? viewModel.derivedStats?.initiative ?? 0 },
+                        set: { viewModel.character.overrides.initiative = $0; viewModel.autosave() }
+                    ),
+                    format: .number
+                )
+                Button("character_reset_overrides") {
+                    viewModel.character.overrides = CharacterOverrides()
+                    viewModel.autosave()
+                }
+            }
+            Button("character_prepare_exports") { viewModel.prepareExports() }
+            if let pdf = viewModel.exportedPDF {
+                ShareLink(item: pdf) { Label("character_share_pdf", systemImage: "doc") }
+            }
+            if let token = viewModel.exportedToken {
+                ShareLink(item: token) { Label("character_share_token", systemImage: "circle.inset.filled") }
+            }
+            Button("character_complete") {
+                Task { if await viewModel.complete() { dismiss() } }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+    }
+
+    @ViewBuilder private var proficienciesStep: some View {
+        Section("character_proficiencies") {
+            if let rule = viewModel.classes.first(where: { $0.id == viewModel.character.classID }) {
+                Text(String(format: NSLocalizedString("character_choose_skills", comment: ""), rule.skillChoiceCount))
+                ForEach(viewModel.skills.filter {
+                    rule.availableSkillIDs.contains($0.id) || viewModel.grantedSkillIDs.contains($0.id)
+                }) { skill in
+                    Toggle(skill.name, isOn: Binding(
+                        get: { viewModel.character.selectedSkillIDs.contains(skill.id) },
+                        set: { _ in viewModel.toggleSkill(skill.id) }
+                    ))
+                    .disabled(viewModel.grantedSkillIDs.contains(skill.id))
+                }
+            } else { Text("character_choose_class_first") }
+        }
+        Section("character_languages") {
+            Text(String(
+                format: NSLocalizedString("character_choose_languages", comment: ""),
+                viewModel.additionalLanguageChoiceCount
+            ))
+            ForEach(viewModel.languages) { language in
+                Toggle(language.name, isOn: Binding(
+                    get: {
+                        viewModel.character.selectedLanguageIDs.contains(language.id)
+                            || viewModel.grantedLanguageIDs.contains(language.id)
+                    },
+                    set: { _ in viewModel.toggleLanguage(language.id) }
+                ))
+                .disabled(viewModel.grantedLanguageIDs.contains(language.id))
+                .accessibilityIdentifier("character.language.\(language.id)")
+            }
         }
     }
 }

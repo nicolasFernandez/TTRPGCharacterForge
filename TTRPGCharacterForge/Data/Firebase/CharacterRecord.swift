@@ -29,11 +29,12 @@ final class CharacterRecord {
     }
 
     func update(from document: CharacterDocument, encoder: JSONEncoder) throws {
+        let encoded = try encoder.encode(document)
         name = document.name
         classID = document.classID
         stateValue = document.state.rawValue
         updatedAt = document.updatedAt
-        payload = try encoder.encode(document)
+        payload = encoded
     }
 }
 
@@ -81,10 +82,27 @@ final class SwiftDataCharacterRepository: CharacterRepository {
     }
 
     func fetchAll() async throws -> [CharacterDocument] {
+        let collection = try await fetchCollection()
+        // Legacy callers cannot display unreadable metadata; preserve an explicit
+        // failure instead of silently returning a partial collection.
+        if let unreadable = collection.unreadableRecords.first { throw unreadable.error }
+        return collection.characters
+    }
+
+    func fetchCollection() async throws -> CharacterCollection {
         let descriptor = FetchDescriptor<CharacterRecord>(
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
-        return try context.fetch(descriptor).map { try decode($0) }
+        var characters: [CharacterDocument] = []
+        var unreadable: [UnreadableCharacterRecord] = []
+        for record in try context.fetch(descriptor) {
+            do {
+                characters.append(try decode(record))
+            } catch {
+                unreadable.append(UnreadableCharacterRecord(id: record.id, name: record.name, error: error))
+            }
+        }
+        return CharacterCollection(characters: characters, unreadableRecords: unreadable)
     }
 
     func fetch(withID id: UUID) async throws -> CharacterDocument {
@@ -93,6 +111,11 @@ final class SwiftDataCharacterRepository: CharacterRepository {
     }
 
     func save(_ character: CharacterDocument) async throws {
+        if let balance = character.currencyBalance,
+           ![balance.copper, balance.silver, balance.electrum, balance.gold, balance.platinum]
+            .allSatisfy({ $0 >= 0 }) {
+            throw ConvertCurrencyUseCase.ConversionError.invalidCoinCount
+        }
         var value = character
         value.updatedAt = Date()
         if let existing = try record(withID: value.id) {
@@ -100,7 +123,12 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         } else {
             context.insert(try CharacterRecord(document: value, encoder: encoder))
         }
-        try context.save()
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
     }
 
     func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument {
@@ -116,7 +144,12 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         copy.updatedAt = copy.createdAt
         copy.currentStep = .review
         copy.portrait = try portraitStore.duplicate(character.portrait, for: copy.id)
-        try await save(copy)
+        do {
+            try await save(copy)
+        } catch {
+            if let portrait = copy.portrait { try? portraitStore.delete(portrait) }
+            throw error
+        }
         return copy
     }
 
@@ -124,9 +157,14 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         guard let existing = try record(withID: id) else { return }
         let document = try? decode(existing)
         context.delete(existing)
-        try context.save()
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
         if let portrait = document?.portrait {
-            try portraitStore.delete(portrait)
+            try? portraitStore.delete(portrait)
         }
     }
 

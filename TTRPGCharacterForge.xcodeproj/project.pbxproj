@@ -255,6 +255,20 @@
 		FBE06484FAD0AC3F102C1C7B /* DetailRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF482E9DBD0000003DED /* DetailRow.swift */; };
 		FCBFF84908587DDF2408D714 /* CharacterRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1254DCDD2E9B81C6008D5C4E /* CharacterRepository.swift */; };
 		FDC402B5321AFE2477A0B609 /* CharactersListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1254DD682E9B87C4008D5C4E /* CharactersListView.swift */; };
+		B247274620AB40DC0A6C9D60 /* UIKitTokenRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A98A7D2EC7B36DB47C5C5EC /* UIKitTokenRenderer.swift */; };
+		8DE29D9A5B55FC9C7CE2B1B4 /* UIKitTokenRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A98A7D2EC7B36DB47C5C5EC /* UIKitTokenRenderer.swift */; };
+		6962030A52134D5593CA7B24 /* UIKitTokenRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A98A7D2EC7B36DB47C5C5EC /* UIKitTokenRenderer.swift */; };
+		3B060E61D2A244545837B40C /* PR115DomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12CFF90F6151F3EC737A2E25 /* PR115DomainTests.swift */; };
+		EEB65C369BEB5073188A3B18 /* PR115StorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6436F055F425437F07BA0AC8 /* PR115StorageTests.swift */; };
+		31570626B622E740BD6D242A /* CharacterSheetPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574BF3021E1AE9B48E715FD /* CharacterSheetPDFExporter.swift */; };
+		1F6EF197E37C6784C5C9494F /* CharacterSheetPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574BF3021E1AE9B48E715FD /* CharacterSheetPDFExporter.swift */; };
+		5090D269CC173ACF252589B1 /* CharacterSheetPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574BF3021E1AE9B48E715FD /* CharacterSheetPDFExporter.swift */; };
+		A7F4013A7D037C2A26ECD7DF /* 2014_EN_Character_Sheet.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4EEB0EC614269CDFF0D7C698 /* 2014_EN_Character_Sheet.pdf */; };
+		6F991C7A6678C2D28A9C8207 /* 2014_EN_Character_Sheet.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4EEB0EC614269CDFF0D7C698 /* 2014_EN_Character_Sheet.pdf */; };
+		906672D2C7310EC0A4FB2BA2 /* 2014_EN_Character_Sheet.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4EEB0EC614269CDFF0D7C698 /* 2014_EN_Character_Sheet.pdf */; };
+		C952889F36EC7F46289288CE /* 2014_ES_Character_Sheet.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4A33ADAB632AD6A772B8C18E /* 2014_ES_Character_Sheet.pdf */; };
+		AA49350FA073A156D794D5DE /* 2014_ES_Character_Sheet.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4A33ADAB632AD6A772B8C18E /* 2014_ES_Character_Sheet.pdf */; };
+		DC3C04E727C6981902BBC75E /* 2014_ES_Character_Sheet.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4A33ADAB632AD6A772B8C18E /* 2014_ES_Character_Sheet.pdf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -379,6 +393,12 @@
 		CAF824E82EC50F31001F5644 /* CreateCharacterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCharacterView.swift; sourceTree = "<group>"; };
 		CAF824EA2EC5118A001F5644 /* TabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarView.swift; sourceTree = "<group>"; };
 		CAF824EC2EC516BF001F5644 /* TabbarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbarItem.swift; sourceTree = "<group>"; };
+		7A98A7D2EC7B36DB47C5C5EC /* UIKitTokenRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TTRPGCharacterForge/Data/Local/UIKitTokenRenderer.swift"; sourceTree = SOURCE_ROOT; };
+		12CFF90F6151F3EC737A2E25 /* PR115DomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TTRPGCharacterForgeTests/PR115DomainTests.swift"; sourceTree = SOURCE_ROOT; };
+		6436F055F425437F07BA0AC8 /* PR115StorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TTRPGCharacterForgeTests/PR115StorageTests.swift"; sourceTree = SOURCE_ROOT; };
+		0574BF3021E1AE9B48E715FD /* CharacterSheetPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TTRPGCharacterForge/Data/Local/CharacterSheetPDFExporter.swift"; sourceTree = SOURCE_ROOT; };
+		4EEB0EC614269CDFF0D7C698 /* 2014_EN_Character_Sheet.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "2014_EN_Character_Sheet.pdf"; sourceTree = SOURCE_ROOT; };
+		4A33ADAB632AD6A772B8C18E /* 2014_ES_Character_Sheet.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "2014_ES_Character_Sheet.pdf"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -511,8 +531,10 @@
 				1254DCF42E9B8446008D5C4E /* CreateCharacterUseCase.swift */,
 				CA33AF322E9DA71500003DED /* SpellUseCase.swift */,
 				1254DD122E9B84B7008D5C4E /* ExportCharacterPdfUseCase.swift */,
+				0574BF3021E1AE9B48E715FD /* CharacterSheetPDFExporter.swift */,
 				1254DD082E9B849B008D5C4E /* GenerateCharacterArtUseCase.swift */,
 				1254DD0D2E9B84AA008D5C4E /* GenerateVTTTokenUseCase.swift */,
+				7A98A7D2EC7B36DB47C5C5EC /* UIKitTokenRenderer.swift */,
 				1254DD032E9B8488008D5C4E /* LoadCharactersUseCase.swift */,
 				1254DD242E9B868E008D5C4E /* LoadSRDRulesUseCase.swift */,
 				1254DCFE2E9B847F008D5C4E /* SaveCharacterUseCase.swift */,
@@ -710,6 +732,8 @@
 			isa = PBXGroup;
 			children = (
 				F04800000000000000000004 /* US048CurrencyConverterTests.swift */,
+				6436F055F425437F07BA0AC8 /* PR115StorageTests.swift */,
+				12CFF90F6151F3EC737A2E25 /* PR115DomainTests.swift */,
 				CA37C6C62959F1CA00C508CB /* TTRPGCharacterForgeTests.swift */,
 				12E1FD682E9E8F4D00F95690 /* Domain */,
 				CA486CCE2E8F2C2A004C0792 /* Utils */,
@@ -748,7 +772,9 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000003 /* rules_en.json */,
+				4EEB0EC614269CDFF0D7C698 /* 2014_EN_Character_Sheet.pdf */,
 				A10000000000000000000004 /* rules_es.json */,
+				4A33ADAB632AD6A772B8C18E /* 2014_ES_Character_Sheet.pdf */,
 				CA56786B2EB016EE0053A9EF /* LocalSpellRepository.swift */,
 			);
 			path = Local;
@@ -930,7 +956,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				F5AF51E6F982EF124378A823 /* rules_en.json in Resources */,
+				906672D2C7310EC0A4FB2BA2 /* 2014_EN_Character_Sheet.pdf in Resources */,
 				84DBD5856980038BCD22B3E3 /* rules_es.json in Resources */,
+				AA49350FA073A156D794D5DE /* 2014_ES_Character_Sheet.pdf in Resources */,
 				127F3CC33035752F00E64F23 /* Localizable.xcstrings in Resources */,
 				9FCD6756E1B5E79F2C20C53E /* Preview Assets.xcassets in Resources */,
 				3B311471F5683F41C894E930 /* Assets.xcassets in Resources */,
@@ -942,7 +970,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				B76E08CF433FB1F7382EE295 /* rules_en.json in Resources */,
+				6F991C7A6678C2D28A9C8207 /* 2014_EN_Character_Sheet.pdf in Resources */,
 				36F80C90613DD8E780CF6888 /* rules_es.json in Resources */,
+				C952889F36EC7F46289288CE /* 2014_ES_Character_Sheet.pdf in Resources */,
 				127F3CC43035752F00E64F23 /* Localizable.xcstrings in Resources */,
 				260A4FA7F0FE6BAA7DB69D06 /* Preview Assets.xcassets in Resources */,
 				1AD9A112364F7E97825B40CE /* Assets.xcassets in Resources */,
@@ -954,7 +984,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000001 /* rules_en.json in Resources */,
+				A7F4013A7D037C2A26ECD7DF /* 2014_EN_Character_Sheet.pdf in Resources */,
 				A10000000000000000000002 /* rules_es.json in Resources */,
+				DC3C04E727C6981902BBC75E /* 2014_ES_Character_Sheet.pdf in Resources */,
 				127F3CC23035752F00E64F23 /* Localizable.xcstrings in Resources */,
 				CA37C6BD2959F1CA00C508CB /* Preview Assets.xcassets in Resources */,
 				CA37C6BA2959F1CA00C508CB /* Assets.xcassets in Resources */,
@@ -989,6 +1021,7 @@
 				81BAE8AACC7DB61F9863DC86 /* String+Utils.swift in Sources */,
 				48B6C99763C2E68D197ED382 /* AttackType.swift in Sources */,
 				608C12BE328F4CC6B5937331 /* ExportCharacterPdfUseCase.swift in Sources */,
+				1F6EF197E37C6784C5C9494F /* CharacterSheetPDFExporter.swift in Sources */,
 				AC8A08756717F93010F4382F /* DamageType.swift in Sources */,
 				76B122F564DC937014271D23 /* CreateCharacterView.swift in Sources */,
 				F5C6F42FEE51097714CA61FC /* Skill.swift in Sources */,
@@ -999,6 +1032,7 @@
 				19A76F6604BAE9DD7252BD98 /* SaveCharacterUseCase.swift in Sources */,
 				E4A40DE3E8CCF6D4DDDBB94E /* RaceType.swift in Sources */,
 				A0B8ACE11DDAE963F9E6B8A8 /* GenerateVTTTokenUseCase.swift in Sources */,
+				6962030A52134D5593CA7B24 /* UIKitTokenRenderer.swift in Sources */,
 				F647E2307E3715FEC5170F2C /* Abilities.swift in Sources */,
 				2E847D2C5267ACD2D2F5CC86 /* BundledRulesRepository.swift in Sources */,
 				8872B5FB58308F10EF0D4EAC /* CharacterEditorView.swift in Sources */,
@@ -1070,6 +1104,7 @@
 				CA486CCC2E8F2B35004C0792 /* String+Utils.swift in Sources */,
 				CA5CE07A2E96BE72000BC2DC /* AttackType.swift in Sources */,
 				1254DD132E9B84B7008D5C4E /* ExportCharacterPdfUseCase.swift in Sources */,
+				31570626B622E740BD6D242A /* CharacterSheetPDFExporter.swift in Sources */,
 				CA37C6F3295A2D6400C508CB /* DamageType.swift in Sources */,
 				CAF824E92EC50F31001F5644 /* CreateCharacterView.swift in Sources */,
 				CA8BE8F12971FD29009517ED /* Skill.swift in Sources */,
@@ -1080,6 +1115,7 @@
 				1254DCFF2E9B847F008D5C4E /* SaveCharacterUseCase.swift in Sources */,
 				CADA87C6297B385300C464CE /* RaceType.swift in Sources */,
 				1254DD0E2E9B84AA008D5C4E /* GenerateVTTTokenUseCase.swift in Sources */,
+				B247274620AB40DC0A6C9D60 /* UIKitTokenRenderer.swift in Sources */,
 				CA37C6E3295A043100C508CB /* Abilities.swift in Sources */,
 				1254DD2F2E9B86DC008D5C4E /* BundledRulesRepository.swift in Sources */,
 				1254DD642E9B87BA008D5C4E /* CharacterEditorView.swift in Sources */,
@@ -1145,6 +1181,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F04800000000000000000041 /* US048CurrencyConverterTests.swift in Sources */,
+				EEB65C369BEB5073188A3B18 /* PR115StorageTests.swift in Sources */,
+				3B060E61D2A244545837B40C /* PR115DomainTests.swift in Sources */,
 				CA486CCF2E8F2C2A004C0792 /* String+UtilsTests.swift in Sources */,
 				CA23C1E42A81AE70005F40F0 /* AbilityTests.swift in Sources */,
 				CA33AF2D2E9DA6B100003DED /* SpellTests.swift in Sources */,
@@ -1174,6 +1212,7 @@
 				4053E65D8AF11E58EC5CA65E /* String+Utils.swift in Sources */,
 				6A50489FD998315FB9B183E5 /* AttackType.swift in Sources */,
 				F8E0ACC2B1D9CAE1FB2E289F /* ExportCharacterPdfUseCase.swift in Sources */,
+				5090D269CC173ACF252589B1 /* CharacterSheetPDFExporter.swift in Sources */,
 				7A649363F7B97572760B8A1B /* DamageType.swift in Sources */,
 				31944D6BFF8BCC82106F38C0 /* CreateCharacterView.swift in Sources */,
 				29F3B637ECC60272298D787D /* Skill.swift in Sources */,
@@ -1184,6 +1223,7 @@
 				F55436CCE2DFCDCA3031E057 /* SaveCharacterUseCase.swift in Sources */,
 				0316222B54221B63F7716EBE /* RaceType.swift in Sources */,
 				288511418174882FC7CF070A /* GenerateVTTTokenUseCase.swift in Sources */,
+				8DE29D9A5B55FC9C7CE2B1B4 /* UIKitTokenRenderer.swift in Sources */,
 				08262741CA8A3580872CF4AA /* Abilities.swift in Sources */,
 				9C2BC2A8A32792EA2A98C79E /* BundledRulesRepository.swift in Sources */,
 				CDE9A90E3B008148709FEE8C /* CharacterEditorView.swift in Sources */,

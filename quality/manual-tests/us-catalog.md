@@ -23,10 +23,11 @@
 
 ## Procedure
 
-Each numeric story has a corresponding QA case (`QA-001` through `QA-064`) and traces to
-the scenario with the same suffix in `quality/features/us-catalog.feature`. The compact
-table below defines the deterministic procedure shared by those cases; actual result and
-status intentionally remain `Not run`.
+The ranges below are a planning index, not executable individual QA cases or proof of
+coverage. Detailed cases must define fixtures, preconditions, steps, and expected results
+before execution. US-048 has concrete procedures in
+[manual-qa.md](../../docs/sdlc/US-048/manual-qa.md) and automation design in
+[qa-design.md](../../docs/sdlc/US-048/qa-design.md). Actual results remain `Not run`.
 
 | QA | Traces to | Human action | Expected result | Actual result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -44,7 +45,7 @@ status intentionally remain `Not run`.
 - `US-032` is retained as the networking boundary: unavailable remote services must leave the bundled SRD flow and local drafts usable.
 - `US-013` and `US-015` are mobile-contract stories; backend implementation and provider secrets are out of scope for this repository.
 - `US-045` is proposed from the unnumbered class-detail issue #27. `US-052`–`US-057` are proposed gaps identified by comparing the issue inventory with level-one SRD coverage.
-- “Both directions” and “inventory update” in `US-048` require product confirmation before implementation-bound scenarios are expanded.
+- `US-048` follows the accepted conversion and inventory scenarios in `docs/sdlc/US-048/US-048.feature`.
 
 ## Run notes
 

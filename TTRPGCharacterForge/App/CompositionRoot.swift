@@ -5,7 +5,6 @@
 //  Created by Nicolás Fernández on 12-10-25.
 //
 
-import Foundation
 import SwiftData
 
 /// Responsible for setting up all dependencies and wiring up the application
@@ -66,7 +65,8 @@ final class CompositionRoot {
             saveCharacterUseCase: SaveCharacterUseCase(repository: characterRepository),
             catalog: try rulesRepository.catalog(locale: .current),
             character: character,
-            portraitStore: portraitStore
+            portraitStore: portraitStore,
+            tokenExporter: GenerateVTTTokenUseCase(renderer: UIKitTokenRenderer())
         )
     }
 }
