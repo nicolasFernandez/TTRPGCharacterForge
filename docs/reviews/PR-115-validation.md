@@ -109,3 +109,13 @@ Separate Coder agents owned persistence/UI and domain/platform fixes; Cleaner ow
 Required build evidence is green. Runtime implementation verification remains blocked, so the complete SDLC/merge gate is not green. Lint and CRAP/mutation measurement were best effort for this review task; their results are reported independently.
 
 Equipment bundle semantics need a separate accepted schema/content change. Exact minimum spell counts and asynchronous loading/actor redesign were rejected as unaccepted tightening or unmeasured performance changes. The cached seed catalog remains synchronous. Spanish translations preserve existing content rather than claiming a complete human-reviewed SRD dataset. Portrait cleanup after a successful record deletion is best effort; it does not turn a committed delete into a reported record-delete failure.
+
+## Review 5431152311: explicit Combine imports
+
+Restored `import Combine` in `SpellListViewModel`, `CharacterEditorVM`, and `CharacterListViewModel` for their `ObservableObject` and `@Published` declarations. This addresses new comment 4197529038 and related existing comments 4040894131 and 4040894162. No behavior changed; runtime tests were not run for this import-only correction.
+
+Validation on 2026-10-06:
+
+- `git diff --check`: exit 0.
+- `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-20261006 CODE_SIGNING_ALLOWED=NO`: exit 65; sandbox CoreSimulator access failed. Log: `/tmp/PR115-Combine-Review-20261006.log`.
+- Approved retry: `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 CODE_SIGNING_ALLOWED=NO`: exit 0, `TEST BUILD SUCCEEDED`. Log: `/tmp/PR115-Combine-Review-Verified-20261006.log`. This proves app and test-bundle compilation, not runtime test execution.

@@ -5,6 +5,7 @@
 //  Created on 2025-10-13.
 //
 
+import Combine
 import Foundation
 
 /// Loads, searches, and filters spells for presentation.
