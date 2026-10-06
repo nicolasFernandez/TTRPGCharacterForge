@@ -104,13 +104,14 @@ struct CreateCharacterUseCase {
     ) throws {
         let selected = Set(character.selectedEquipmentIDs)
         let background = Set(catalog.background(id: character.backgroundID)?.grantedEquipmentIDs ?? [])
-        let allowed = Set(characterClass.equipmentChoiceGroups.flatMap { $0 }).union(background)
-        guard selected.isSubset(of: allowed), background.isSubset(of: selected) else {
+        let allowed = Set(characterClass.equipmentChoiceGroups.flatMap { $0.equipmentIDs }).union(background)
+        guard selected.count == character.selectedEquipmentIDs.count,
+              selected.isSubset(of: allowed), background.isSubset(of: selected) else {
             throw CharacterValidationError.invalidEquipment
         }
         if try hasPositiveWealth(character) { return }
         guard !selected.isEmpty,
-              characterClass.equipmentChoiceGroups.allSatisfy({ !Set($0).isDisjoint(with: selected) }) else {
+              characterClass.equipmentChoiceGroups.allSatisfy({ $0.accepts(selected) }) else {
             throw CharacterValidationError.invalidEquipment
         }
     }

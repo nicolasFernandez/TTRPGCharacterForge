@@ -182,3 +182,39 @@ git diff --check
 ```
 
 Both exited 0. Build result: `TEST BUILD SUCCEEDED`. Log: `/tmp/PR115-Symlink-Currency-Build-20261006.log`. No new iOS runtime, UI QA, coverage, CRAP, or mutation result is claimed. Previously replied-to stale findings were not reposted; the two older equipment-schema and obsolete-cache items remain outside this focused patch.
+
+## Review 5432038382: equipment semantics and remaining project cleanup
+
+This follow-up resolves the older equipment-schema and obsolete-cache items identified above. Specifier produced `PR-115-equipment.feature` and `PR-115-equipment-manual-qa.md`; Coder implemented the accepted scenarios; Cleaner removed the cache stub and reviewed the equipment diff. Root coordinated ownership and executed the final build and existing flush regressions. No production file had concurrent writers.
+
+| Paths | Owner / allowed editor | Phase | Dirty before kickoff |
+| --- | --- | --- | --- |
+| Equipment feature and manual QA documents | Specifier only | Specification | No |
+| RulesRepository, CreateCharacterUseCase, BundledRulesRepository, EN/ES JSON, PR115DomainTests | Coder only | Implementation | No |
+| project.pbxproj and SpellCacheManager.swift | Cleaner only | Cleanup | No |
+| This validation report and temporary flush harness | Root only | Evidence | No |
+
+`EquipmentChoiceGroup.options` now represents exclusive alternatives, with every ID in an option required as a bundle. Both bundled catalogs use schema version 2, with fighter/paladin weapon-and-shield bundles explicit. Completion rejects partial bundles, multiple alternatives, and duplicate equipment IDs. Positive wealth retains its existing class-equipment bypass while background equipment remains required. Invalid/empty/duplicate catalog options and unknown references are rejected. Character document equipment IDs and schema are unchanged; this is not a full SRD equipment/quantity expansion.
+
+The empty `SpellCacheManager.swift` and all eight project entries were removed. The dismissal finding requires no production change: Done already awaits `flushAutosave()` and dismisses only on success. Existing success/failure regressions were executed for additional evidence.
+
+Required focused runtime and compilation gates passed:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-Equipment-Host-20261006
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-Review-Host-20261006 --filter FlushTests
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 CODE_SIGNING_ALLOWED=NO
+```
+
+All exited 0. Seven equipment XCTest methods passed, mapped to SC-PR115-EQ-01 through 06 plus malformed-catalog validation; two existing save-flush XCTest methods passed. Host logs: `/tmp/PR115-Equipment-Host-20261006.log` and `/tmp/PR115-Equipment-Dismissal-20261006.log`. The equipment harness copies production domain sources and loads the same bundled JSON by filesystem path. The flush harness copies the view model and existing tests, with unexercised throwing PDF/PNG adapter stubs for macOS compilation. These are host runtime results, not iOS XCTest execution. Initial equipment-harness sandbox compilation failed on compiler cache access; the approved retry produced the passing result. Final iOS build: `TEST BUILD SUCCEEDED`, log `/tmp/PR115-Equipment-Build-20261006.log`.
+
+```sh
+plutil -lint TTRPGCharacterForge.xcodeproj/project.pbxproj
+git diff --check
+rg -n 'SpellCacheManager|makeSpellCacheManager' TTRPGCharacterForge TTRPGCharacterForge.xcodeproj
+swiftlint lint --strict --no-cache --config .swiftlint.yml --reporter json TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift TTRPGCharacterForge/Domain/UseCases/CreateCharacterUseCase.swift TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift
+```
+
+Project syntax and diff checks exited 0. Search exited 1 with no obsolete-cache matches. Changed production-file lint exited 0 with zero violations; output `/tmp/PR115-Equipment-Production-Lint.json`. Best-effort full repository lint (`swiftlint lint --strict --no-cache --config .swiftlint.yml --reporter json`) exited 2 with one preexisting CharacterRecord.decode complexity violation (5 against threshold 4); log/report `/tmp/PR115-Review5432038382-cleaner-lint-nocache.log` and `.json`. Tests are normally excluded by the repository lint config.
+
+No functional blockers were found in the read-only cleanup review. UI QA actual results remain `Not run`; iOS runtime execution, CRAP, mutation, and UI/device/locale automation were not requested as full-pipeline gates and are not claimed. The earlier equipment-schema deferral is superseded by the user's explicit request to solve this review and the accepted focused scenarios.

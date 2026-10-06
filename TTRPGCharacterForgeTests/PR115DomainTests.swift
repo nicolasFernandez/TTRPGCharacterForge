@@ -198,3 +198,135 @@ private final class RecordingTokenRenderer: TokenRendering {
         return Data([3, 4])
     }
 }
+
+// Equipment regression cases share the existing character fixture.
+extension PR115DomainTests {
+    // UT-PR115-EQ-01 / SC-PR115-EQ-01: one armor alternative, never both or neither.
+    func testFighterRequiresExactlyOneArmorAlternative() throws {
+        for locale in [RulesLocale.english, .spanish] {
+            let catalog = try BundledRulesRepository().catalog(locale: locale)
+            for armor in [["chain-mail"], ["leather-armor"], ["chain-mail", "leather-armor"], []] {
+                var character = equipmentFixture()
+                character.classID = "fighter"
+                character.selectedEquipmentIDs += armor + ["martial-weapon", "shield"]
+                if armor.count == 1 {
+                    XCTAssertNoThrow(
+                        try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+                    )
+                } else {
+                    XCTAssertThrowsError(
+                        try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+                    )
+                }
+            }
+        }
+    }
+
+    // UT-PR115-EQ-02 / SC-PR115-EQ-02: every member of fighter/paladin bundles is required.
+    func testWeaponShieldBundleRequiresBothItems() throws {
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        for classID in ["fighter", "paladin"] {
+            for bundle in [["martial-weapon", "shield"], ["martial-weapon"], ["shield"], []] {
+                var character = equipmentFixture()
+                character.classID = classID
+                if classID == "paladin" {
+                    character.selectedSkillIDs = ["insight", "religion", "athletics", "intimidation"]
+                }
+                character.selectedEquipmentIDs += [classID == "fighter" ? "chain-mail" : "javelin"] + bundle
+                if bundle.count == 2 {
+                    XCTAssertNoThrow(
+                        try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+                    )
+                } else {
+                    XCTAssertThrowsError(
+                        try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+                    )
+                }
+            }
+        }
+    }
+
+    // UT-PR115-EQ-03 / SC-PR115-EQ-03: single item alternatives and mandatory packs.
+    func testBarbarianAlternativesAndRequiredPack() throws {
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        for weapon in ["greataxe", "martial-weapon"] {
+            var character = equipmentFixture()
+            character.selectedEquipmentIDs += [weapon, "explorers-pack"]
+            XCTAssertNoThrow(
+                try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+            )
+            character.selectedEquipmentIDs.removeAll { $0 == "explorers-pack" }
+            XCTAssertThrowsError(
+                try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+            )
+        }
+        var mixed = equipmentFixture()
+        mixed.selectedEquipmentIDs += ["greataxe", "martial-weapon", "explorers-pack"]
+        XCTAssertThrowsError(try CreateCharacterUseCase().validateForCompletion(mixed, catalog: catalog))
+    }
+
+    // UT-PR115-EQ-04 / SC-PR115-EQ-04: class choice bypass retains background and allowed-ID checks.
+    func testFighterWealthPreservesBackgroundAndAllowedEquipment() throws {
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        var character = equipmentFixture()
+        character.classID = "fighter"
+        character.startingWealthGP = 1
+        XCTAssertNoThrow(
+            try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+        )
+        character.selectedEquipmentIDs = []
+        XCTAssertThrowsError(
+            try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+        )
+        character.selectedEquipmentIDs = ["holy-symbol", "unknown-equipment"]
+        XCTAssertThrowsError(
+            try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+        )
+    }
+
+    // UT-PR115-EQ-05 / SC-PR115-EQ-05: locale parity and unchanged document equipment encoding.
+    // Save/relaunch through the UI remains a separate QA check.
+    func testEquipmentCatalogParityAndDocumentRoundTrip() throws {
+        let english = try BundledRulesRepository().catalog(locale: .english)
+        let spanish = try BundledRulesRepository().catalog(locale: .spanish)
+        XCTAssertEqual(english.schemaVersion, 2)
+        XCTAssertEqual(spanish.schemaVersion, 2)
+        XCTAssertEqual(english.classes.map(\.id), spanish.classes.map(\.id))
+        XCTAssertEqual(english.classes.map(\.equipmentChoiceGroups), spanish.classes.map(\.equipmentChoiceGroups))
+        for catalog in [english, spanish] {
+            try RulesCatalogValidator().validate(catalog)
+            var character = equipmentFixture()
+            character.classID = "fighter"
+            character.selectedEquipmentIDs += ["chain-mail", "martial-weapon", "shield"]
+            let restored = try JSONDecoder().decode(CharacterDocument.self, from: JSONEncoder().encode(character))
+            XCTAssertEqual(restored, character)
+            XCTAssertNoThrow(try CreateCharacterUseCase().validateForCompletion(restored, catalog: catalog))
+        }
+    }
+
+    // UT-PR115-EQ-06 / SC-PR115-EQ-06: duplicate equipment IDs never complete, including with wealth.
+    func testDuplicateEquipmentRejectedWithAndWithoutWealth() throws {
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        for wealth in [0, 1] {
+            var character = equipmentFixture()
+            character.classID = "fighter"
+            character.startingWealthGP = wealth
+            character.selectedEquipmentIDs += ["chain-mail", "martial-weapon", "shield", "shield"]
+            XCTAssertThrowsError(
+                try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog)
+            )
+        }
+    }
+
+    func testCatalogRejectsMalformedEquipmentGroups() throws {
+        let malformedOptions: [[[String]]] = [
+            [], [[]], [["unknown-equipment"]], [["shield", "shield"]], [["shield"], ["shield"]],
+            [["shield", "martial-weapon"], ["martial-weapon", "shield"]]
+        ]
+        for options in malformedOptions {
+            var catalog = try BundledRulesRepository().catalog(locale: .english)
+            catalog.classes[0].equipmentChoiceGroups = [EquipmentChoiceGroup(options: options)]
+            XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
+        }
+    }
+}
