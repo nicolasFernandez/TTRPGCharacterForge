@@ -114,11 +114,7 @@ final class SwiftDataCharacterRepository: CharacterRepository {
     }
 
     func save(_ character: CharacterDocument) async throws {
-        if let balance = character.currencyBalance,
-           ![balance.copper, balance.silver, balance.electrum, balance.gold, balance.platinum]
-            .allSatisfy({ $0 >= 0 }) {
-            throw ConvertCurrencyUseCase.ConversionError.invalidCoinCount
-        }
+        try validateCurrency(character.currencyBalance)
         var value = character
         value.updatedAt = Date()
         if let existing = try record(withID: value.id) {
@@ -191,11 +187,20 @@ final class SwiftDataCharacterRepository: CharacterRepository {
             guard document.rulesetID == CharacterDocument.rulesetID else {
                 throw CharacterStoreError.unsupportedRuleset(document.rulesetID)
             }
+            try validateCurrency(document.currencyBalance)
             return document
         } catch let error as CharacterStoreError {
             throw error
         } catch {
             throw CharacterStoreError.corrupted(record.id, error)
+        }
+    }
+
+    private func validateCurrency(_ balance: CurrencyBalance?) throws {
+        guard let balance else { return }
+        guard [balance.copper, balance.silver, balance.electrum, balance.gold, balance.platinum]
+            .allSatisfy({ $0 >= 0 }) else {
+            throw ConvertCurrencyUseCase.ConversionError.invalidCoinCount
         }
     }
 }

@@ -335,6 +335,47 @@ private final class ReviewCharacterRepository: CharacterRepository {
 
 @MainActor
 final class CharacterCorruptionRecoveryTests: XCTestCase {
+    // UT-PR115-NEGATIVE-COINS: decoding enforces the save invariant for every denomination and date format.
+    func testNegativeCurrencyIsUnreadableAndRetained() async throws {
+        let invalidBalances = [CurrencyBalance(copper: -1), CurrencyBalance(silver: -1),
+                               CurrencyBalance(electrum: -1), CurrencyBalance(gold: -1),
+                               CurrencyBalance(platinum: -1)]
+        for strategy in [JSONEncoder.DateEncodingStrategy.iso8601, .secondsSince1970] {
+            let container = try ModelContainer(for: CharacterRecord.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            let repository = SwiftDataCharacterRepository(context: container.mainContext,
+                portraitStore: PortraitStore())
+            let valid = CharacterDocument(name: "Zero balance", currencyBalance: .zero)
+            try await repository.save(valid)
+            var invalidIDs: Set<UUID> = []
+            for balance in invalidBalances {
+                let invalid = CharacterDocument(name: "Negative balance", currencyBalance: balance)
+                invalidIDs.insert(invalid.id)
+                let encoder = JSONEncoder()
+                encoder.dateEncodingStrategy = strategy
+                container.mainContext.insert(try CharacterRecord(document: invalid, encoder: encoder))
+            }
+            try container.mainContext.save()
+            let collection = try await repository.fetchCollection()
+            XCTAssertEqual(collection.characters.map(\.id), [valid.id])
+            XCTAssertEqual(Set(collection.unreadableRecords.map(\.id)), invalidIDs)
+            for unreadable in collection.unreadableRecords {
+                guard case .corrupted(let id, let cause) = unreadable.error as? CharacterStoreError else {
+                    return XCTFail("Expected corrupted currency metadata")
+                }
+                XCTAssertEqual(id, unreadable.id)
+                XCTAssertEqual(cause as? ConvertCurrencyUseCase.ConversionError, .invalidCoinCount)
+            }
+            XCTAssertEqual(try container.mainContext.fetchCount(FetchDescriptor<CharacterRecord>()), 6)
+            do {
+                _ = try await repository.fetch(withID: XCTUnwrap(invalidIDs.first))
+                XCTFail("Negative currency must not be readable by ID")
+            } catch {
+                XCTAssertTrue(error is CharacterStoreError)
+            }
+        }
+    }
+
     // UT-PR115-RULESET: unsupported rulesets stay visible without being interpreted or deleted.
     func testUnsupportedRulesetRemainsUnreadableForBothDateFormats() async throws {
         for strategy in [JSONEncoder.DateEncodingStrategy.iso8601, .secondsSince1970] {

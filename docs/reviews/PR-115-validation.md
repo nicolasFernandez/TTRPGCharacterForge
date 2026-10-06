@@ -159,3 +159,26 @@ python3 -m json.tool TTRPGCharacterForge/Localizable.xcstrings
 All exited 0. Build result: `TEST BUILD SUCCEEDED`. Log: `/tmp/PR115-Review-Build-20261006.log`; parsed localization artifact: `/tmp/PR115-review-localizations.json`. No UI QA, coverage, CRAP, or mutation result is claimed for this focused correction.
 
 Replied to carried-over comments 4040673038, 4040672749, and 4039250142: explicit `AbilityID: Hashable`, Spanish catalog locale `es`, and awaited `flushAutosave()` already address their claims. Equipment schema semantics and obsolete cache cleanup remain separate carried-over items; this patch does not claim to resolve them.
+
+## Review 5431855151: symlink aliases and negative persisted currency
+
+Accepted inline comment 4198125209 and the new review-body finding about negative currency decoding. Portrait validation checks the unresolved file entry and rejects symbolic links, including links to another portrait inside the same directory and dangling links. Reads, duplication, and deletion share this validation; a new, nonexistent filename remains valid for saving. Store decoding now applies the same nonnegative denomination check as saving; invalid records remain visible as unreadable corruption without removing their payloads.
+
+Regression mappings: `UT-PR115-INROOT-SYMLINK` -> `testPortraitRejectsInRootAndDanglingSymlinksWithoutDeletingTarget`; `UT-PR115-NEGATIVE-COINS` -> `testNegativeCurrencyIsUnreadableAndRetained`. Currency coverage includes every denomination, ISO-8601 and legacy numeric dates, collection visibility, direct-fetch rejection, and a valid zero balance.
+
+Executed on 2026-10-06:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-Review-Host-20261006
+```
+
+Before implementation: exit 1, nine host XCTest tests executed with 14 failures (two unexpected errors caused by the portrait target being deleted). Both new regression methods failed. Log: `/tmp/PR115-Symlink-Currency-Red-20261006.log`.
+
+After implementation: exit 0, nine host XCTest tests passed with zero failures. Log: `/tmp/PR115-Symlink-Currency-Green-20261006.log`. The existing isolated harness was refreshed with the repository's current storage source files and test methods. This is macOS runtime evidence, not iOS simulator execution.
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 CODE_SIGNING_ALLOWED=NO
+git diff --check
+```
+
+Both exited 0. Build result: `TEST BUILD SUCCEEDED`. Log: `/tmp/PR115-Symlink-Currency-Build-20261006.log`. No new iOS runtime, UI QA, coverage, CRAP, or mutation result is claimed. Previously replied-to stale findings were not reposted; the two older equipment-schema and obsolete-cache items remain outside this focused patch.
