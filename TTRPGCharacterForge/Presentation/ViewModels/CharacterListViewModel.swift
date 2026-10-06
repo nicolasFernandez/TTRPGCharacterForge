@@ -5,6 +5,7 @@
 //  Created by Nicolás Fernández on 12-10-25.
 //
 
+import Combine
 import Foundation
 
 /// Loads and manages the collection of persisted characters.
