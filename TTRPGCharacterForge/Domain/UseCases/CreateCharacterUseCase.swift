@@ -27,6 +27,7 @@ struct CreateCharacterUseCase {
         try validateSubrace(character.subraceID, against: race)
         try validateArchetype(character.archetypeID, against: characterClass)
         try validateSkills(character, characterClass: characterClass, catalog: catalog)
+        try validateLanguages(character, race: race, catalog: catalog)
         try validateEquipment(character, characterClass: characterClass, catalog: catalog)
         try validateSpells(character, characterClass: characterClass, catalog: catalog)
     }
@@ -79,30 +80,54 @@ struct CreateCharacterUseCase {
         }
     }
 
+    private func validateLanguages(_ character: CharacterDocument, race: RaceRule, catalog: RulesCatalog) throws {
+        guard let background = catalog.background(id: character.backgroundID) else {
+            throw CharacterValidationError.missingRequiredChoice("background")
+        }
+        let granted = Set(race.grantedLanguageIDs + background.grantedLanguageIDs)
+        let selected = Set(character.selectedLanguageIDs)
+        let additionalCount = race.additionalLanguageChoices + background.additionalLanguageChoices
+        guard granted.isSubset(of: selected),
+              selected.isSubset(of: Set(catalog.languages.map(\.id))),
+              selected.count == character.selectedLanguageIDs.count,
+              selected.subtracting(granted).count == additionalCount else {
+            throw CharacterValidationError.missingRequiredChoice("languages")
+        }
+    }
+
     private func validateEquipment(
         _ character: CharacterDocument,
         characterClass: ClassRule,
         catalog: RulesCatalog
     ) throws {
-        let hasEquipment = !character.selectedEquipmentIDs.isEmpty
-            || character.startingWealthGP != nil
-            || character.currencyBalance != nil
-        guard hasEquipment else {
+        let selected = Set(character.selectedEquipmentIDs)
+        let background = Set(catalog.background(id: character.backgroundID)?.grantedEquipmentIDs ?? [])
+        let allowed = Set(characterClass.equipmentChoiceGroups.flatMap { $0 }).union(background)
+        guard selected.isSubset(of: allowed), background.isSubset(of: selected) else {
             throw CharacterValidationError.invalidEquipment
         }
-        let selectedEquipment = Set(character.selectedEquipmentIDs)
-        let backgroundEquipment = Set(catalog.background(id: character.backgroundID)?.grantedEquipmentIDs ?? [])
-        let allowedEquipment = Set(characterClass.equipmentChoiceGroups.flatMap { $0 }).union(backgroundEquipment)
-        guard selectedEquipment.isSubset(of: allowedEquipment) else {
+        if try hasPositiveWealth(character) { return }
+        guard !selected.isEmpty,
+              characterClass.equipmentChoiceGroups.allSatisfy({ !Set($0).isDisjoint(with: selected) }) else {
             throw CharacterValidationError.invalidEquipment
         }
-        if character.currencyBalance == nil && character.startingWealthGP == nil {
-            guard characterClass.equipmentChoiceGroups.allSatisfy({ group in
-                !Set(group).isDisjoint(with: selectedEquipment)
-            }) else {
-                throw CharacterValidationError.invalidEquipment
-            }
+    }
+
+    private func hasPositiveWealth(_ character: CharacterDocument) throws -> Bool {
+        if let balance = character.currencyBalance {
+            return try hasPositiveBalance(balance)
         }
+        if let wealth = character.startingWealthGP {
+            guard wealth >= 0 else { throw CharacterValidationError.invalidEquipment }
+            return wealth > 0
+        }
+        return false
+    }
+
+    private func hasPositiveBalance(_ balance: CurrencyBalance) throws -> Bool {
+        let counts = [balance.copper, balance.silver, balance.electrum, balance.gold, balance.platinum]
+        guard counts.allSatisfy({ $0 >= 0 }) else { throw CharacterValidationError.invalidEquipment }
+        return counts.contains { $0 > 0 }
     }
 
     private func validateSpells(
@@ -126,11 +151,14 @@ struct CreateCharacterUseCase {
             )
         }
         for spellID in character.selectedSpellIDs {
-            let spell = catalog.spells.first { $0.id == spellID }
-            guard let spell,
-                  spell.classIDs.contains(characterClass.id), spell.level <= 1 else {
-                throw CharacterValidationError.invalidSpell(spell?.name ?? spellID)
-            }
+            try validateSpell(spellID, classID: characterClass.id, catalog: catalog)
+        }
+    }
+
+    private func validateSpell(_ id: String, classID: String, catalog: RulesCatalog) throws {
+        let spell = catalog.spells.first { $0.id == id }
+        guard let spell, spell.classIDs.contains(classID), spell.level <= 1 else {
+            throw CharacterValidationError.invalidSpell(spell?.name ?? id)
         }
     }
 }

@@ -17,7 +17,11 @@ struct TabBarView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
                     ForEach(tabbarItems.indices, id: \.self) { index in
-                        TabbarItem(name: tabbarItems[index], isActive: selectedIndex == index, namespace: menuItemTransition)
+                        TabbarItem(
+                            name: tabbarItems[index],
+                            isActive: selectedIndex == index,
+                            namespace: menuItemTransition
+                        )
                             .onTapGesture {
                                 withAnimation(.easeInOut) {
                                     selectedIndex = index

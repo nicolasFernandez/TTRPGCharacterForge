@@ -13,9 +13,9 @@ struct CharactersListView: View {
 
     var body: some View {
         Group {
-            if viewModel.isLoading && viewModel.characters.isEmpty {
+            if viewModel.isLoading && viewModel.characters.isEmpty && viewModel.unreadableRecords.isEmpty {
                 ProgressView()
-            } else if viewModel.characters.isEmpty {
+            } else if viewModel.characters.isEmpty && viewModel.unreadableRecords.isEmpty {
                 ContentUnavailableView(
                     "characters_empty_title",
                     systemImage: "person.crop.circle.badge.plus",
@@ -25,6 +25,7 @@ struct CharactersListView: View {
                 List {
                     characterSection(title: "characters_drafts", values: drafts)
                     characterSection(title: "characters_completed", values: completed)
+                    unreadableSection
                 }
                 .accessibilityIdentifier("characters.list")
             }
@@ -37,9 +38,11 @@ struct CharactersListView: View {
         }
         .task { await viewModel.loadCharacters() }
         .refreshable { await viewModel.loadCharacters() }
-        .sheet(item: $editor, onDismiss: { Task { await viewModel.loadCharacters() } }) { destination in
-            editorView(for: destination.character)
-        }
+        .sheet(
+            item: $editor,
+            onDismiss: { Task { await viewModel.loadCharacters() } },
+            content: { destination in editorView(for: destination.character) }
+        )
         .alert("error_title", isPresented: errorBinding) {
             Button("ok", role: .cancel) { viewModel.errorMessage = nil }
         } message: { Text(viewModel.errorMessage ?? "") }
@@ -66,7 +69,7 @@ struct CharactersListView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("character.row.\(accessibilitySlug(character.name))")
+                    .accessibilityIdentifier("character.row.\(character.id.uuidString)")
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) { viewModel.delete(character) } label: {
                             Label("delete", systemImage: "trash")
@@ -81,12 +84,37 @@ struct CharactersListView: View {
         }
     }
 
+    @ViewBuilder private var unreadableSection: some View {
+        if !viewModel.unreadableRecords.isEmpty {
+            Section("characters_unreadable") {
+                ForEach(viewModel.unreadableRecords) { record in
+                    VStack(alignment: .leading) {
+                        Text(record.name.isEmpty ? String(localized: "character_unnamed") : record.name)
+                            .font(.headline)
+                        Text(record.error.localizedDescription)
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .accessibilityIdentifier("character.unreadable.\(record.id.uuidString)")
+                    .swipeActions {
+                        Button(role: .destructive) { viewModel.delete(withID: record.id) } label: {
+                            Label("delete", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private func editorView(for character: CharacterDocument?) -> AnyView {
         do {
             let viewModel = try compositionRoot.makeCharacterEditorViewModel(character: character)
             return AnyView(CreateCharacterView(viewModel: viewModel))
         } catch {
-            return AnyView(ContentUnavailableView("error_title", systemImage: "exclamationmark.triangle", description: Text(error.localizedDescription)))
+            return AnyView(ContentUnavailableView(
+                "error_title",
+                systemImage: "exclamationmark.triangle",
+                description: Text(error.localizedDescription)
+            ))
         }
     }
 
@@ -94,17 +122,11 @@ struct CharactersListView: View {
         Binding(get: { viewModel.errorMessage != nil }, set: { if !$0 { viewModel.errorMessage = nil } })
     }
 
-    private func accessibilitySlug(_ value: String) -> String {
-        value.lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
-    }
-
     private func className(for character: CharacterDocument) -> String {
         guard let classID = character.classID,
               let catalog = try? compositionRoot.rulesRepository.catalog(locale: .current),
               let rule = catalog.characterClass(id: classID) else {
-            return character.classID ?? String(localized: "character_incomplete")
+            return String(localized: "character_incomplete")
         }
         return rule.name
     }

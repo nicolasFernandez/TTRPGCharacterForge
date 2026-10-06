@@ -105,10 +105,12 @@ The reset implementation must validate that `-ui-testing` is also present, valid
 
 Identifiers are locale-independent. Visible labels/values remain localized and are asserted separately.
 
+The fixture loader must make the seeded document UUID known to the test. Build the exact row identifier as `character.row.` plus `id.uuidString`; the placeholder below is not a literal or wildcard query. Duplicate and unnamed characters must retain distinct row identifiers.
+
 | Identifier | Element/semantic value |
 | --- | --- |
 | `characters.list` | Saved-character list container. |
-| `character.row.currency-qa` | Fixture character row. |
+| `character.row.<fixture UUID>` | Fixture character row; use the seeded CharacterDocument.id.uuidString, not its display name. |
 | `character.currency.open` | Currency entry action on the selected character. |
 | `currency.converter.screen` | Converter root, with character name in its value or child label. |
 | `currency.converter.title` | Localized title. |
@@ -132,7 +134,7 @@ The UI test should query by identifier, wait with bounded predicate expectations
 
 ## Assertion design by UI ID
 
-- `UI-001`: launch `us048-zero` without `-ui-start-route`; open `character.row.currency-qa`, invoke `character.currency.open`, and assert the root, five editable fields, total, and apply action exist and become hittable after semantic scrolling.
+- `UI-001`: launch `us048-zero` without `-ui-start-route`; open `character.row.<fixture UUID>`, invoke `character.currency.open`, and assert the root, five editable fields, total, and apply action exist and become hittable after semantic scrolling.
 - `UI-002`: enter `105 cp`, `11 sp`, `3 ep`, `12 gp`, `2 pp`; assert `currency.total-cp == "3565 cp"`; apply; assert field values `pp=3`, `gp=5`, `ep=1`, `sp=1`, `cp=5`.
 - `UI-003`: reset for every examples-table row and assert the exact copper total plus canonical field values, including the lower-value `1 gp`, `1 sp`, and `1 cp` rows from `SC-002` even though the manual procedure summarizes them.
 - `UI-004`: use `us048-existing`; capture the two equipment identifiers, enter only `250 cp`, apply, assert `2 gp + 1 ep`, relaunch without reset, assert the same balance and both equipment items.

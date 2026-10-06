@@ -5,7 +5,6 @@
 //  Created by Nicolás Fernández on 12-10-25.
 //
 
-import Foundation
 
 /// Persists a character document. Completion validation is performed by the editor use case.
 struct SaveCharacterUseCase {

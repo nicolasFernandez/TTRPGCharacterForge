@@ -3,7 +3,8 @@ import SwiftUI
 /// Edits and persists a character's exact SRD currency balance.
 struct CurrencyConverterView: View {
     @ObservedObject var viewModel: CharacterEditorVM
-    @Environment(\.locale) private var locale
+    @Environment(\.locale)
+    private var locale
     @State private var copper: String
     @State private var silver: String
     @State private var electrum: String
@@ -55,6 +56,7 @@ struct CurrencyConverterView: View {
             Button("currency_apply") { Task { await apply() } }
                 .accessibilityIdentifier("currency.apply")
         }
+        .disabled(viewModel.isLoading)
         .accessibilityIdentifier("currency.converter.screen")
         .navigationTitle("currency_title")
         .toolbar {

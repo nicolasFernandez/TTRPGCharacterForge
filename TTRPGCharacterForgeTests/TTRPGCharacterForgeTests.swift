@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import SwiftData
 @testable import TTRPGCharacterForge
 
 final class TTRPGCharacterForgeTests: XCTestCase {
@@ -81,5 +82,308 @@ private final class FixedRandomNumberGenerator: RandomNumberGenerating {
     func next(in range: ClosedRange<Int>) -> Int {
         defer { index += 1 }
         return values[index % values.count]
+    }
+}
+
+/// UT-PR115: regression coverage for review findings about draft persistence.
+@MainActor
+final class CharacterPersistenceReviewTests: XCTestCase {
+    func testDirectBoundEditPersistsWithoutNavigation() async throws {
+        let repository = ReviewCharacterRepository()
+        let saved = expectation(description: "Bound edit autosaves")
+        repository.didSave = { saved.fulfill() }
+        let editor = makeEditor(repository)
+        editor.character.name = "Bound name"
+        await fulfillment(of: [saved], timeout: 2)
+        XCTAssertEqual(repository.documents.last?.name, "Bound name")
+    }
+
+    func testFlushWaitsForCancelledInFlightSaveAndPreservesLatestEdit() async throws {
+        let repository = ReviewCharacterRepository()
+        repository.holdFirstSave = true
+        let started = expectation(description: "Earlier writer entered repository")
+        repository.didStart = { started.fulfill() }
+        let editor = makeEditor(repository)
+        editor.character.name = "Earlier"
+        await fulfillment(of: [started], timeout: 2)
+        editor.character.name = "Latest"
+        let flush = Task { await editor.flushAutosave() }
+        await Task.yield()
+        XCTAssertEqual(repository.startedCount, 1)
+        repository.releaseFirstSave()
+        let success = await flush.value
+        XCTAssertTrue(success)
+        XCTAssertEqual(repository.documents.map(\.name), ["Earlier", "Latest"])
+        XCTAssertEqual(repository.maximumConcurrentSaves, 1)
+    }
+
+    func testInvalidCompletionKeepsPendingDraftSave() async {
+        let repository = ReviewCharacterRepository()
+        let saved = expectation(description: "Invalid draft remains saved")
+        repository.didSave = { saved.fulfill() }
+        let editor = makeEditor(repository)
+        editor.character.name = "Incomplete"
+        let completed = await editor.complete()
+        XCTAssertFalse(completed)
+        await fulfillment(of: [saved], timeout: 2)
+        XCTAssertEqual(repository.documents.last?.name, "Incomplete")
+        XCTAssertEqual(repository.documents.last?.state, .draft)
+    }
+
+    func testFailedPortraitPersistencePreservesOldFileAndRemovesReplacement() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PortraitStore(baseURL: directory)
+        let repository = ReviewCharacterRepository()
+        repository.failSaves = true
+        let oldData = Data("original portrait".utf8)
+        let original = try store.save(oldData, for: UUID())
+        let editor = makeEditor(repository, portraitStore: store,
+                                character: CharacterDocument(portrait: original))
+        await editor.importPortrait(Data("replacement portrait".utf8))
+        XCTAssertEqual(editor.character.portrait, original)
+        XCTAssertEqual(try Data(contentsOf: store.url(for: original)), oldData)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.path),
+                       [original.relativePath])
+        XCTAssertNotNil(editor.errorMessage)
+    }
+
+    func testSuccessfulPortraitReplacementIsPersistedBeforeOldFileRemoval() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PortraitStore(baseURL: directory)
+        let repository = ReviewCharacterRepository()
+        let original = try store.save(Data("original portrait".utf8), for: UUID())
+        let oldURL = try store.url(for: original)
+        repository.didSave = { XCTAssertTrue(FileManager.default.fileExists(atPath: oldURL.path)) }
+        let editor = makeEditor(repository, portraitStore: store,
+                                character: CharacterDocument(portrait: original))
+        let newData = Data("replacement portrait".utf8)
+        await editor.importPortrait(newData)
+        let replacement = try XCTUnwrap(editor.character.portrait)
+        XCTAssertNotEqual(replacement.relativePath, original.relativePath)
+        XCTAssertEqual(repository.documents.last?.portrait, replacement)
+        XCTAssertEqual(try Data(contentsOf: store.url(for: replacement)), newData)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: oldURL.path))
+        XCTAssertNil(editor.errorMessage)
+    }
+
+    func testSuspendedCurrencySavePreservesNewerEditorEdits() async throws {
+        let repository = ReviewCharacterRepository()
+        repository.holdFirstSave = true
+        let started = expectation(description: "Currency save suspended")
+        repository.didStart = { started.fulfill() }
+        let editor = makeEditor(repository)
+        let saving = Task { try await editor.saveCurrencyBalance(.init(gold: 7)) }
+        await fulfillment(of: [started], timeout: 2)
+        XCTAssertTrue(editor.isLoading)
+        editor.character.name = "Newer edit"
+        repository.releaseFirstSave()
+        try await saving.value
+        XCTAssertFalse(editor.isLoading)
+        XCTAssertEqual(editor.character.name, "Newer edit")
+        XCTAssertEqual(editor.character.currencyBalance, .init(gold: 7))
+        let flushed = await editor.flushAutosave()
+        XCTAssertTrue(flushed)
+        XCTAssertEqual(repository.documents.last?.name, "Newer edit")
+        XCTAssertEqual(repository.documents.last?.currencyBalance, .init(gold: 7))
+    }
+
+    func testDraftSaveSurvivesEditorRelease() async {
+        let repository = ReviewCharacterRepository()
+        let saved = expectation(description: "Save dependency survives editor")
+        repository.didSave = { saved.fulfill() }
+        var editor: CharacterEditorVM? = makeEditor(repository)
+        editor?.character.name = "Released editor"
+        editor = nil
+        await fulfillment(of: [saved], timeout: 2)
+        XCTAssertEqual(repository.documents.last?.name, "Released editor")
+    }
+
+    func testNegativeCurrencyIsRejectedBeforePersistence() async {
+        let repository = ReviewCharacterRepository()
+        let editor = makeEditor(repository)
+        do {
+            try await editor.saveCurrencyBalance(.init(gold: -1))
+            XCTFail("Expected negative balance rejection")
+        } catch {
+            XCTAssertEqual(error as? ConvertCurrencyUseCase.ConversionError, .invalidCoinCount)
+        }
+        XCTAssertTrue(repository.documents.isEmpty)
+        XCTAssertNil(editor.character.currencyBalance)
+    }
+
+    func testFailedFlushKeepsEditorAvailableAndReportsFailure() async {
+        let repository = ReviewCharacterRepository()
+        repository.failSaves = true
+        let editor = makeEditor(repository)
+        editor.character.name = "Unsaved"
+        let success = await editor.flushAutosave()
+        XCTAssertFalse(success)
+        XCTAssertEqual(editor.character.name, "Unsaved")
+        XCTAssertNotNil(editor.errorMessage)
+    }
+
+    func testCancelledListLoadResetsLoadingState() async {
+        let repository = ReviewCharacterRepository()
+        repository.cancelLoads = true
+        let list = CharacterListViewModel(
+            loadCharactersUseCase: LoadCharactersUseCase(repository: repository),
+            saveCharacterUseCase: SaveCharacterUseCase(repository: repository)
+        )
+        await list.loadCharacters()
+        XCTAssertFalse(list.isLoading)
+        XCTAssertNil(list.errorMessage)
+    }
+
+    func testClassChangeRetainsAndLocksMandatoryBackgroundSkills() throws {
+        let repository = ReviewCharacterRepository()
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        let editor = makeEditor(repository, catalog: catalog)
+        editor.character.backgroundID = "acolyte"
+        editor.character.classID = "barbarian"
+        editor.character.selectedSkillIDs = ["religion", "insight", "arcana", "athletics"]
+        editor.reconcileClassSelection()
+        XCTAssertEqual(Set(editor.character.selectedSkillIDs), ["religion", "insight", "athletics"])
+        editor.toggleSkill("religion")
+        XCTAssertTrue(editor.character.selectedSkillIDs.contains("religion"))
+    }
+
+    func testRaceAndBackgroundLanguageChoicesKeepMandatoryGrants() throws {
+        let repository = ReviewCharacterRepository()
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        let editor = makeEditor(repository, catalog: catalog)
+        editor.character.raceID = "human"
+        editor.applyRaceBonuses()
+        editor.character.backgroundID = "acolyte"
+        editor.reconcileBackgroundSelection(previousID: nil)
+        XCTAssertEqual(editor.additionalLanguageChoiceCount, 3)
+        XCTAssertEqual(editor.grantedLanguageIDs, ["common"])
+        editor.toggleLanguage("common")
+        XCTAssertTrue(editor.character.selectedLanguageIDs.contains("common"))
+        editor.toggleLanguage("draconic")
+        XCTAssertTrue(editor.character.selectedLanguageIDs.contains("draconic"))
+        editor.character.raceID = "elf"
+        editor.applyRaceBonuses(previousID: "human")
+        XCTAssertEqual(editor.additionalLanguageChoiceCount, 2)
+        XCTAssertTrue(Set(["common", "elvish"]).isSubset(of: Set(editor.character.selectedLanguageIDs)))
+    }
+
+    private func makeEditor(
+        _ repository: ReviewCharacterRepository,
+        catalog: RulesCatalog? = nil,
+        portraitStore: PortraitStore = PortraitStore(),
+        character: CharacterDocument? = nil
+    ) -> CharacterEditorVM {
+        CharacterEditorVM(
+            createCharacterUseCase: CreateCharacterUseCase(),
+            updateAbilityScoreUseCase: UpdateAbilityScoreUseCase(),
+            computeDerivedStatsUseCase: ComputeDerivedStatsUseCase(),
+            saveCharacterUseCase: SaveCharacterUseCase(repository: repository),
+            catalog: catalog ?? RulesCatalog(schemaVersion: 1, rulesetID: CharacterDocument.rulesetID,
+                                  locale: "en", races: [], classes: [], backgrounds: [], skills: [],
+                                  languages: [], equipment: [], spells: []),
+            character: character,
+            portraitStore: portraitStore
+        )
+    }
+}
+
+@MainActor
+private final class ReviewCharacterRepository: CharacterRepository {
+    enum Failure: Error { case save }
+    var documents: [CharacterDocument] = []
+    var failSaves = false
+    var cancelLoads = false
+    var holdFirstSave = false
+    var didStart: (() -> Void)?
+    var didSave: (() -> Void)?
+    var startedCount = 0
+    var maximumConcurrentSaves = 0
+    private var activeSaves = 0
+    private var firstSave: CheckedContinuation<Void, Never>?
+
+    func releaseFirstSave() { firstSave?.resume(); firstSave = nil }
+    func fetchAll() async throws -> [CharacterDocument] {
+        if cancelLoads { throw CancellationError() }
+        return documents
+    }
+    func fetch(withID id: UUID) async throws -> CharacterDocument {
+        guard let value = documents.last(where: { $0.id == id }) else {
+            throw CharacterStoreError.notFound(id)
+        }
+        return value
+    }
+    func save(_ character: CharacterDocument) async throws {
+        startedCount += 1
+        activeSaves += 1
+        maximumConcurrentSaves = max(maximumConcurrentSaves, activeSaves)
+        defer { activeSaves -= 1 }
+        if holdFirstSave && startedCount == 1 {
+            await withCheckedContinuation { continuation in
+                firstSave = continuation
+                didStart?()
+            }
+        }
+        if failSaves { throw Failure.save }
+        documents.append(character)
+        didSave?()
+    }
+    func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument { character }
+    func delete(withID id: UUID) async throws { documents.removeAll { $0.id == id } }
+}
+
+@MainActor
+final class CharacterCorruptionRecoveryTests: XCTestCase {
+    func testMixedCollectionKeepsCorruptRecordsVisibleUntilExplicitDeletion() async throws {
+        let container = try ModelContainer(for: CharacterRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        let repository = SwiftDataCharacterRepository(context: context, portraitStore: PortraitStore())
+        let valid = CharacterDocument(name: "Readable")
+        try await repository.save(valid)
+        let corrupt = try CharacterRecord(document: CharacterDocument(name: "Unreadable"))
+        corrupt.payload = Data("invalid JSON".utf8)
+        context.insert(corrupt)
+        try context.save()
+
+        let collection = try await repository.fetchCollection()
+        XCTAssertEqual(collection.characters.map(\.id), [valid.id])
+        XCTAssertEqual(collection.unreadableRecords.map(\.id), [corrupt.id])
+        XCTAssertEqual(collection.unreadableRecords.first?.name, "Unreadable")
+        let failure = try XCTUnwrap(collection.unreadableRecords.first?.error as? CharacterStoreError)
+        guard case .corrupted(let reportedID, _) = failure else {
+            return XCTFail("Expected corruption metadata")
+        }
+        XCTAssertEqual(reportedID, corrupt.id)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<CharacterRecord>()), 2)
+
+        try await repository.delete(withID: corrupt.id)
+        let recovered = try await repository.fetchCollection()
+        XCTAssertEqual(recovered.characters.map(\.id), [valid.id])
+        XCTAssertTrue(recovered.unreadableRecords.isEmpty)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<CharacterRecord>()), 1)
+    }
+
+    func testUnsupportedSchemaRemainsVisibleWithOriginalFailure() async throws {
+        let container = try ModelContainer(for: CharacterRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        var future = CharacterDocument(name: "Future")
+        future.schemaVersion = CharacterDocument.currentSchemaVersion + 1
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let record = try CharacterRecord(document: future, encoder: encoder)
+        container.mainContext.insert(record)
+        try container.mainContext.save()
+        let repository = SwiftDataCharacterRepository(context: container.mainContext,
+                                                       portraitStore: PortraitStore())
+        let collection = try await repository.fetchCollection()
+        XCTAssertTrue(collection.characters.isEmpty)
+        let failure = try XCTUnwrap(collection.unreadableRecords.first?.error as? CharacterStoreError)
+        guard case .unsupportedSchema(let version) = failure else {
+            return XCTFail("Expected unsupported schema metadata")
+        }
+        XCTAssertEqual(version, future.schemaVersion)
+        XCTAssertEqual(try container.mainContext.fetchCount(FetchDescriptor<CharacterRecord>()), 1)
     }
 }

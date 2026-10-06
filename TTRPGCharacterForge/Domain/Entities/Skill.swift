@@ -5,7 +5,6 @@
 //  Created by Nicolas Alonso Fernandez Alarcon on 13-01-23.
 //
 
-import Foundation
 
 /// Defines a skill of the character like acrobatics, animal handling...
 struct Skill {

@@ -20,19 +20,29 @@ struct PortraitStore {
 
     func save(_ data: Data, for characterID: UUID, fileExtension: String = "jpg") throws -> PortraitReference {
         try fileManager.createDirectory(at: baseURL, withIntermediateDirectories: true, attributes: nil)
-        let filename = "\(characterID.uuidString).\(fileExtension)"
-        let destination = baseURL.appendingPathComponent(filename)
+        let filename = "\(characterID.uuidString)-\(UUID().uuidString).\(fileExtension)"
+        let destination = try url(for: PortraitReference(relativePath: filename, crop: .fullImage))
         try data.write(to: destination, options: .atomic)
         return PortraitReference(relativePath: filename, crop: .fullImage)
     }
 
-    func url(for portrait: PortraitReference) -> URL {
-        baseURL.appendingPathComponent(portrait.relativePath)
+    func url(for portrait: PortraitReference) throws -> URL {
+        let path = portrait.relativePath
+        guard !path.isEmpty, path == (path as NSString).lastPathComponent,
+              path != ".", path != "..", !path.contains("\\") else {
+            throw CocoaError(.fileReadInvalidFileName)
+        }
+        let root = baseURL.resolvingSymlinksInPath().standardizedFileURL
+        let candidate = root.appendingPathComponent(path).resolvingSymlinksInPath().standardizedFileURL
+        guard candidate.deletingLastPathComponent() == root else {
+            throw CocoaError(.fileReadInvalidFileName)
+        }
+        return candidate
     }
 
     func duplicate(_ portrait: PortraitReference?, for characterID: UUID) throws -> PortraitReference? {
         guard let portrait else { return nil }
-        let source = url(for: portrait)
+        let source = try url(for: portrait)
         guard fileManager.fileExists(atPath: source.path) else { return nil }
         let ext = source.pathExtension.isEmpty ? "jpg" : source.pathExtension
         let destination = baseURL.appendingPathComponent("\(characterID.uuidString).\(ext)")
@@ -41,7 +51,7 @@ struct PortraitStore {
     }
 
     func delete(_ portrait: PortraitReference) throws {
-        let target = url(for: portrait)
+        let target = try url(for: portrait)
         if fileManager.fileExists(atPath: target.path) { try fileManager.removeItem(at: target) }
     }
 }

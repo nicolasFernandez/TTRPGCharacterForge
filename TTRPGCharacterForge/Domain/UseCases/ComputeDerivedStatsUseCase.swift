@@ -81,16 +81,30 @@ struct ComputeDerivedStatsUseCase {
     ) -> Int {
         let equippedItems = catalog.equipment.filter { character.selectedEquipmentIDs.contains($0.id) }
         let equippedArmor = equippedItems
-            .filter { $0.kind == .armor && $0.id != "shield" && $0.id != "wooden-shield" }
+            .filter { isBodyArmor($0) }
             .max { ($0.armorClass ?? 0) < ($1.armorClass ?? 0) }
         let shieldBonus = equippedItems
-            .filter { $0.id == "shield" || $0.id == "wooden-shield" }
+            .filter { isShield($0) }
             .map { $0.armorClass ?? 0 }
             .max() ?? 0
         guard let armor = equippedArmor, let base = armor.armorClass else {
             return 10 + dexterityModifier + shieldBonus
         }
-        return base + min(dexterityModifier, armor.dexterityCap ?? dexterityModifier) + shieldBonus
+        let dexterityBonus = armorDexterityBonus(dexterityModifier, cap: armor.dexterityCap)
+        return base + dexterityBonus + shieldBonus
+    }
+
+    private func isShield(_ item: EquipmentRule) -> Bool {
+        item.id == "shield" || item.id == "wooden-shield"
+    }
+
+    private func isBodyArmor(_ item: EquipmentRule) -> Bool {
+        item.kind == .armor && !isShield(item)
+    }
+
+    private func armorDexterityBonus(_ modifier: Int, cap: Int?) -> Int {
+        guard let cap else { return modifier }
+        return cap == 0 ? 0 : min(modifier, cap)
     }
 }
 

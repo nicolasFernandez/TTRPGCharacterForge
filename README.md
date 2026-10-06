@@ -62,6 +62,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -version
 swiftlint version
 swift-complexity --version
 muter --version
+python3 --version
 ```
 
 ### Quality tooling
@@ -73,8 +74,9 @@ The repository uses:
 - Xcode [`xccov`](https://keith.github.io/xcode-man-pages/xccov.1.html) for method-level line coverage.
 - `scripts/quality/crap-report.swift` to combine complexity and coverage using `CRAP(m) = complexity² × (1 − coverage)³ + complexity`.
 - [Muter](https://github.com/muter-mutation-testing/muter) for unit-test mutation testing (`muter.conf.yml`).
+- Python 3 for the checked mutation-report gate (no additional packages).
 
-Run the unit-test, lint, complexity, coverage, and CRAP pipeline with:
+Run the unit-test, lint/analyzer, complexity, coverage, and CRAP pipeline with:
 
 ```bash
 scripts/quality/run-quality.sh
@@ -96,7 +98,7 @@ QUALITY_DESTINATION='platform=iOS Simulator,name=<device>,OS=latest' scripts/qua
 QUALITY_COMPLEXITY_PATH='TTRPGCharacterForge/Data/Local' scripts/quality/run-quality.sh
 ```
 
-The mutation goal is 100% for eligible in-scope mutants, but the actionable gate is no unexplained survivors. Equivalent mutants and tool limitations must be recorded rather than hidden through broad exclusions.
+The mutation goal is 100% for eligible in-scope mutants, but the actionable gate is no unexplained survivors. Equivalent mutants and tool limitations must be recorded rather than hidden through broad exclusions. The script requires a green baseline and validates the Muter 16 JSON report; survivors and unmeasured/error outcomes fail. See [mutation-gate.md](scripts/quality/mutation-gate.md) for the report contract and manual exception policy.
 
 ## V1 scope
 
@@ -105,7 +107,7 @@ The mutation goal is 100% for eligible in-scope mutants, but the actionable gate
 - [ ] Autosave character drafts and completed characters locally with SwiftData.
 - [ ] Load the spell browser from bundled, versioned rule catalogs.
 - [ ] Import a local portrait and include portrait metadata in the character document.
-- [ ] Export an original printable PDF and transparent circular PNG VTT token.
+- [ ] Export a printable PDF using the bundled English/Spanish 2014 sheets and a transparent circular PNG VTT token.
 - [ ] Complete human review of every English and Spanish catalog entry against the bundled SRD source documents.
 - [ ] Finish phone and tablet UI automation and PDF snapshot coverage using full Xcode.
 

@@ -68,7 +68,7 @@ opt_in_rules:
 custom_rules:
   array_constructor:
     name: "Array/Dictionary initializer"
-    regex: '[let,var] .+ = (\[.+\]\(\))'
+    regex: '\b(?:let|var)\b .+ = (\[.+\]\(\))'
     capture_group: 1
     message: "Use explicit type annotation when initializing empty arrays and dictionaries"
     severity: warning

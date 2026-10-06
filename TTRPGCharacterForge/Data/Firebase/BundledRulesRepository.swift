@@ -78,7 +78,13 @@ struct RulesCatalogValidator {
             try references(rule.grantedLanguageIDs, in: languages)
             try references(rule.grantedEquipmentIDs, in: equipment)
         }
-        for spell in catalog.spells { try references(spell.classIDs, in: classes) }
+        for spell in catalog.spells {
+            guard SpellSchool(rawValue: spell.school) != nil, !spell.classIDs.isEmpty else {
+                throw RulesCatalogError.invalidData(spell.id)
+            }
+            try unique(spell.classIDs)
+            try references(spell.classIDs, in: classes)
+        }
     }
 
     private func unique(_ ids: [String]) throws {

@@ -31,7 +31,7 @@ struct SpellListView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingFilters.toggle() }) {
+                    Button { showingFilters.toggle() } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                 }
