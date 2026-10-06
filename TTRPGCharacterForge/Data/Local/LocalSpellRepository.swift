@@ -11,17 +11,20 @@ import CryptoKit
 /// Loads spell data from resources bundled with the application.
 final class LocalSpellRepository: SpellRepository {
     private let rulesRepository: RulesRepository
+    private let loadingQueue = DispatchQueue(label: "TTRPGCharacterForge.spell-loading", qos: .userInitiated)
 
     init(rulesRepository: RulesRepository = BundledRulesRepository()) {
         self.rulesRepository = rulesRepository
     }
 
     func fetchAllSpells(completion: @escaping (Result<[Spell], any Error>) -> Void) {
-        do {
-            let catalog = try rulesRepository.catalog(locale: .current)
-            completion(.success(try catalog.spells.map(Self.makeSpell)))
-        } catch {
-            completion(.failure(error))
+        let locale = RulesLocale.current
+        loadingQueue.async { [self] in
+            let result = Result {
+                let catalog = try rulesRepository.catalog(locale: locale)
+                return try catalog.spells.map(Self.makeSpell)
+            }
+            DispatchQueue.main.async { completion(result) }
         }
     }
 

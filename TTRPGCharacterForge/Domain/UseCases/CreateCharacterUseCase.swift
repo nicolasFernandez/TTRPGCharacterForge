@@ -69,9 +69,11 @@ struct CreateCharacterUseCase {
         catalog: RulesCatalog
     ) throws {
         let backgroundSkills = Set(catalog.background(id: character.backgroundID)?.grantedSkillIDs ?? [])
-        let classSkills = Set(character.selectedSkillIDs).subtracting(backgroundSkills)
-        guard classSkills.isSubset(of: Set(characterClass.availableSkillIDs)),
-              backgroundSkills.isSubset(of: Set(character.selectedSkillIDs)),
+        let selectedSkills = Set(character.selectedSkillIDs)
+        let classSkills = selectedSkills.subtracting(backgroundSkills)
+        guard selectedSkills.count == character.selectedSkillIDs.count,
+              classSkills.isSubset(of: Set(characterClass.availableSkillIDs)),
+              backgroundSkills.isSubset(of: selectedSkills),
               classSkills.count == characterClass.skillChoiceCount else {
             throw CharacterValidationError.invalidSkillCount(
                 expected: characterClass.skillChoiceCount,

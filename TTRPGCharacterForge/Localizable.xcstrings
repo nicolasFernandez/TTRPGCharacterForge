@@ -1407,6 +1407,23 @@
         }
       }
     },
+    "character_store_unsupported_ruleset" : {
+      "comment" : "Character ruleset is unsupported",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This character's ruleset is not supported."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El sistema de reglas de este personaje no es compatible."
+          }
+        }
+      }
+    },
     "character_store_unsupported_schema" : {
       "comment" : "Character persistence schema is unsupported",
       "localizations" : {
