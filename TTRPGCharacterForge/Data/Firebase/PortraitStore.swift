@@ -33,9 +33,17 @@ struct PortraitStore {
             throw CocoaError(.fileReadInvalidFileName)
         }
         let root = baseURL.resolvingSymlinksInPath().standardizedFileURL
-        let candidate = root.appendingPathComponent(path).resolvingSymlinksInPath().standardizedFileURL
+        let candidate = root.appendingPathComponent(path).standardizedFileURL
         guard candidate.deletingLastPathComponent() == root else {
             throw CocoaError(.fileReadInvalidFileName)
+        }
+        do {
+            let attributes = try fileManager.attributesOfItem(atPath: candidate.path)
+            guard attributes[.type] as? FileAttributeType != .typeSymbolicLink else {
+                throw CocoaError(.fileReadInvalidFileName)
+            }
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile || error.code == .fileNoSuchFile {
+            // Saving a new portrait needs a valid path before the file exists.
         }
         return candidate
     }
