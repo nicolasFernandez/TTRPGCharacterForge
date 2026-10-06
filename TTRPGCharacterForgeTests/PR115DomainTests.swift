@@ -4,6 +4,19 @@ import UIKit
 @testable import TTRPGCharacterForge
 
 final class PR115DomainTests: XCTestCase {
+    // UT-PR115-SKILLS: duplicate class or background IDs cannot complete a character.
+    func testCompletionRejectsDuplicateSkillSelections() throws {
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        var character = equipmentFixture()
+        character.startingWealthGP = 10
+        XCTAssertNoThrow(try CreateCharacterUseCase().validateForCompletion(character, catalog: catalog))
+        for duplicate in ["athletics", "religion"] {
+            var malformed = character
+            malformed.selectedSkillIDs.append(duplicate)
+            XCTAssertThrowsError(try CreateCharacterUseCase().validateForCompletion(malformed, catalog: catalog))
+        }
+    }
+
     func testStandardArrayReassignmentSwapsExistingOwner() throws {
         var character = CharacterDocument(
             baseAbilities: AbilityScoreSet(strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8),

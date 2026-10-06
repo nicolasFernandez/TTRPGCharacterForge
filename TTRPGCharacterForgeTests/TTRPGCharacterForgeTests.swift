@@ -335,6 +335,44 @@ private final class ReviewCharacterRepository: CharacterRepository {
 
 @MainActor
 final class CharacterCorruptionRecoveryTests: XCTestCase {
+    // UT-PR115-RULESET: unsupported rulesets stay visible without being interpreted or deleted.
+    func testUnsupportedRulesetRemainsUnreadableForBothDateFormats() async throws {
+        for strategy in [JSONEncoder.DateEncodingStrategy.iso8601, .secondsSince1970] {
+            let container = try ModelContainer(for: CharacterRecord.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            let repository = SwiftDataCharacterRepository(context: container.mainContext,
+                portraitStore: PortraitStore())
+            let valid = CharacterDocument(name: "Supported")
+            try await repository.save(valid)
+            let foreign = CharacterDocument(rulesetID: "other-ruleset", name: "Other rules")
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = strategy
+            let record = try CharacterRecord(document: foreign, encoder: encoder)
+            container.mainContext.insert(record)
+            try container.mainContext.save()
+
+            let collection = try await repository.fetchCollection()
+            XCTAssertEqual(collection.characters.map(\.id), [valid.id])
+            XCTAssertEqual(collection.unreadableRecords.map(\.id), [foreign.id])
+            XCTAssertEqual(collection.unreadableRecords.first?.name, foreign.name)
+            let failure = try XCTUnwrap(collection.unreadableRecords.first?.error as? CharacterStoreError)
+            guard case .unsupportedRuleset(let ruleset) = failure else {
+                return XCTFail("Expected unsupported ruleset metadata")
+            }
+            XCTAssertEqual(ruleset, foreign.rulesetID)
+            XCTAssertEqual(try container.mainContext.fetchCount(FetchDescriptor<CharacterRecord>()), 2)
+            do {
+                _ = try await repository.fetch(withID: foreign.id)
+                XCTFail("Unsupported ruleset must not be readable by ID")
+            } catch {
+                guard case .unsupportedRuleset(let ruleset) = error as? CharacterStoreError else {
+                    return XCTFail("Expected unsupported ruleset on direct fetch")
+                }
+                XCTAssertEqual(ruleset, foreign.rulesetID)
+            }
+        }
+    }
+
     func testMixedCollectionKeepsCorruptRecordsVisibleUntilExplicitDeletion() async throws {
         let container = try ModelContainer(for: CharacterRecord.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true))

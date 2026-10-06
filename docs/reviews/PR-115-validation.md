@@ -119,3 +119,43 @@ Validation on 2026-10-06:
 - `git diff --check`: exit 0.
 - `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-20261006 CODE_SIGNING_ALLOWED=NO`: exit 65; sandbox CoreSimulator access failed. Log: `/tmp/PR115-Combine-Review-20261006.log`.
 - Approved retry: `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 CODE_SIGNING_ALLOWED=NO`: exit 0, `TEST BUILD SUCCEEDED`. Log: `/tmp/PR115-Combine-Review-Verified-20261006.log`. This proves app and test-bundle compilation, not runtime test execution.
+
+## Review 5431448930: rulesets, duplicate skills, and spell loading
+
+Addressed new inline comment 4197779820 and the two newly reported review-body findings:
+
+- Store decoding rejects unsupported `rulesetID` values after either supported date format is decoded. The original record remains visible as unreadable, with an explicit localized English/Spanish error; direct fetch also rejects it.
+- Completion rejects duplicate skill IDs before counting distinct class selections, including duplicated background skills.
+- A serial worker queue performs spell catalog loading and mapping off the main thread. Success and failure completions return on the main queue.
+
+Regression mappings: `UT-PR115-RULESET` -> `testUnsupportedRulesetRemainsUnreadableForBothDateFormats`; `UT-PR115-SKILLS` -> `testCompletionRejectsDuplicateSkillSelections`; `UT-PR115-SPELL-THREAD` -> `testSpellLoadingRunsOffMainAndDeliversResultsOnMain`.
+
+Executed on 2026-10-06:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild test -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'platform=iOS Simulator,id=711D48FF-C3B4-4A29-8940-1D0658C230BA' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 -only-testing:TTRPGCharacterForgeTests/CharacterCorruptionRecoveryTests -only-testing:TTRPGCharacterForgeTests/PR115DomainTests/testCompletionRejectsDuplicateSkillSelections -resultBundlePath /tmp/PR115-Ruleset-Red-20261006.xcresult CODE_SIGNING_ALLOWED=NO
+```
+
+Exit 65: test compilation exposed an initializer argument-order error, which was corrected. Log: `/tmp/PR115-Ruleset-Red-20261006.log`. Retried the same command with `Red2` replacing `Red` in the result/log paths. Exit 73 after interruption: no test methods executed; this is not red regression evidence.
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild test -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'platform=iOS Simulator,id=711D48FF-C3B4-4A29-8940-1D0658C230BA' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 -parallel-testing-enabled NO -only-testing:TTRPGCharacterForgeTests/CharacterCorruptionRecoveryTests -only-testing:TTRPGCharacterForgeTests/PR115DomainTests -only-testing:TTRPGCharacterForgeTests/PR115StorageTests -resultBundlePath /tmp/PR115-Review-Green-20261006.xcresult CODE_SIGNING_ALLOWED=NO
+```
+
+Exit 73 after interruption: compilation completed, but simulator test execution stalled before any test methods ran. Log: `/tmp/PR115-Review-Green-20261006.log`. The simulator ID was discovered live with `simctl list devices booted`; it is evidence for this run only.
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-Review-Host-20261006
+```
+
+Exit 0: seven macOS XCTest tests ran and passed, including all three new regression methods. Log: `/tmp/PR115-Review-Host-20261006.log`. This temporary macOS 14 package copies the repository's domain, storage, and spell repository sources; recovery/storage tests use the repository test methods. The duplicate-skill fixture loads the same bundled English JSON by filesystem path because the harness is not the app bundle. This is host execution evidence, not an iOS XCTest pass.
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 CODE_SIGNING_ALLOWED=NO
+git diff --check
+python3 -m json.tool TTRPGCharacterForge/Localizable.xcstrings
+```
+
+All exited 0. Build result: `TEST BUILD SUCCEEDED`. Log: `/tmp/PR115-Review-Build-20261006.log`; parsed localization artifact: `/tmp/PR115-review-localizations.json`. No UI QA, coverage, CRAP, or mutation result is claimed for this focused correction.
+
+Replied to carried-over comments 4040673038, 4040672749, and 4039250142: explicit `AbilityID: Hashable`, Spanish catalog locale `es`, and awaited `flushAutosave()` already address their claims. Equipment schema semantics and obsolete cache cleanup remain separate carried-over items; this patch does not claim to resolve them.

@@ -42,6 +42,7 @@ final class CharacterRecord {
 enum CharacterStoreError: LocalizedError {
     case notFound(UUID)
     case unsupportedSchema(Int)
+    case unsupportedRuleset(String)
     case corrupted(UUID, Error)
 
     var errorDescription: String? {
@@ -53,6 +54,8 @@ enum CharacterStoreError: LocalizedError {
                 "character_store_unsupported_schema",
                 comment: "Character persistence schema is unsupported"
             )
+        case .unsupportedRuleset:
+            NSLocalizedString("character_store_unsupported_ruleset", comment: "Character ruleset is unsupported")
         case .corrupted:
             NSLocalizedString("character_store_corrupted", comment: "Character persistence record is corrupted")
         }
@@ -184,6 +187,9 @@ final class SwiftDataCharacterRepository: CharacterRepository {
             }
             guard document.schemaVersion == CharacterDocument.currentSchemaVersion else {
                 throw CharacterStoreError.unsupportedSchema(document.schemaVersion)
+            }
+            guard document.rulesetID == CharacterDocument.rulesetID else {
+                throw CharacterStoreError.unsupportedRuleset(document.rulesetID)
             }
             return document
         } catch let error as CharacterStoreError {
