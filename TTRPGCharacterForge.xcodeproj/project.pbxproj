@@ -53,7 +53,6 @@
 		127F3CC43035752F00E64F23 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 127F3CC13035752E00E64F23 /* Localizable.xcstrings */; };
 		12D033132E9EE64A00BA86DE /* SpellRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D033122E9EE64A00BA86DE /* SpellRowView.swift */; };
 		12D033182E9EE72100BA86DE /* FilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D033172E9EE72100BA86DE /* FilterView.swift */; };
-		13A1F3FC4FF623CD54BE2547 /* SpellCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF2E2E9DA6CE00003DED /* SpellCacheManager.swift */; };
 		19973AA995A8C8BA7E458526 /* SpellSchoolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8BE8EC2971F956009517ED /* SpellSchoolView.swift */; };
 		19A76F6604BAE9DD7252BD98 /* SaveCharacterUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1254DCFE2E9B847F008D5C4E /* SaveCharacterUseCase.swift */; };
 		1AD9A112364F7E97825B40CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA37C6B92959F1CA00C508CB /* Assets.xcassets */; };
@@ -168,7 +167,6 @@
 		CA33AF272E9DA54900003DED /* SpellComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF262E9DA54900003DED /* SpellComponents.swift */; };
 		CA33AF292E9DA57000003DED /* SpellSchool.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF282E9DA57000003DED /* SpellSchool.swift */; };
 		CA33AF2D2E9DA6B100003DED /* SpellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF2C2E9DA6B100003DED /* SpellTests.swift */; };
-		CA33AF2F2E9DA6CE00003DED /* SpellCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF2E2E9DA6CE00003DED /* SpellCacheManager.swift */; };
 		CA33AF332E9DA71500003DED /* SpellUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF322E9DA71500003DED /* SpellUseCase.swift */; };
 		CA33AF372E9DA72000003DED /* SpellRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF342E9DA72000003DED /* SpellRepository.swift */; };
 		CA33AF392E9DA77600003DED /* SpellsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF382E9DA77600003DED /* SpellsCoordinator.swift */; };
@@ -218,7 +216,6 @@
 		CAF824EB2EC5118A001F5644 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF824EA2EC5118A001F5644 /* TabBarView.swift */; };
 		CAF824ED2EC516BF001F5644 /* TabbarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF824EC2EC516BF001F5644 /* TabbarItem.swift */; };
 		CD062CEF01F40F9A4827BA40 /* AbilityScoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8BE8F22975F752009517ED /* AbilityScoresView.swift */; };
-		CD3ADCD0F44222B3A3C305E2 /* SpellCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA33AF2E2E9DA6CE00003DED /* SpellCacheManager.swift */; };
 		CDBE270F5A4BF0DE98876717 /* Armor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA37C6EE295A287800C508CB /* Armor.swift */; };
 		CDBF2F1EDB64E7A1951CFA49 /* UpdateAbilityScoreUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1254DD1F2E9B8673008D5C4E /* UpdateAbilityScoreUseCase.swift */; };
 		CDE9A90E3B008148709FEE8C /* CharacterEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1254DD632E9B87BA008D5C4E /* CharacterEditorView.swift */; };
@@ -341,7 +338,6 @@
 		CA33AF262E9DA54900003DED /* SpellComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellComponents.swift; sourceTree = "<group>"; };
 		CA33AF282E9DA57000003DED /* SpellSchool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellSchool.swift; sourceTree = "<group>"; };
 		CA33AF2C2E9DA6B100003DED /* SpellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellTests.swift; sourceTree = "<group>"; };
-		CA33AF2E2E9DA6CE00003DED /* SpellCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellCacheManager.swift; sourceTree = "<group>"; };
 		CA33AF302E9DA6EF00003DED /* FirebaseSpellRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseSpellRepository.swift; sourceTree = "<group>"; };
 		CA33AF322E9DA71500003DED /* SpellUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellUseCase.swift; sourceTree = "<group>"; };
 		CA33AF342E9DA72000003DED /* SpellRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellRepository.swift; sourceTree = "<group>"; };
@@ -546,7 +542,6 @@
 		1254DCC72E9B805A008D5C4E /* Caching */ = {
 			isa = PBXGroup;
 			children = (
-				CA33AF2E2E9DA6CE00003DED /* SpellCacheManager.swift */,
 			);
 			path = Caching;
 			sourceTree = "<group>";
@@ -1059,7 +1054,6 @@
 				41491633CCFF40F883D71654 /* RulesRepository.swift in Sources */,
 				6BD904CA4E141D8B4D60F06D /* SpellsCoordinator.swift in Sources */,
 				DA6BA60D27E62ACB809F4494 /* Background.swift in Sources */,
-				13A1F3FC4FF623CD54BE2547 /* SpellCacheManager.swift in Sources */,
 				74D413A57CD86F7D30FB0D77 /* Coordinator.swift in Sources */,
 				872A1FDC0892DF5B74CB0586 /* AppRouter.swift in Sources */,
 				BB7BD6D3819AC7C2977FF0EC /* PdfExporter.swift in Sources */,
@@ -1142,7 +1136,6 @@
 				1254DCE32E9B829D008D5C4E /* RulesRepository.swift in Sources */,
 				CA33AF392E9DA77600003DED /* SpellsCoordinator.swift in Sources */,
 				CA8BE8DF2971E5CC009517ED /* Background.swift in Sources */,
-				CA33AF2F2E9DA6CE00003DED /* SpellCacheManager.swift in Sources */,
 				CAF824E72EC50ECB001F5644 /* Coordinator.swift in Sources */,
 				1254DD792E9B8800008D5C4E /* AppRouter.swift in Sources */,
 				1254DCED2E9B83B8008D5C4E /* PdfExporter.swift in Sources */,
@@ -1250,7 +1243,6 @@
 				4404964BF0BC0F5498C4D0DB /* RulesRepository.swift in Sources */,
 				A5C4CF835739E7FBDD59692A /* SpellsCoordinator.swift in Sources */,
 				4D8FDAFCA1A0FC086E9F0748 /* Background.swift in Sources */,
-				CD3ADCD0F44222B3A3C305E2 /* SpellCacheManager.swift in Sources */,
 				91233E6D0F9DE5B0914FA3C9 /* Coordinator.swift in Sources */,
 				2925611FCBE86F97E6F759BB /* AppRouter.swift in Sources */,
 				BBE73B4CB200C65E04D95EE0 /* PdfExporter.swift in Sources */,

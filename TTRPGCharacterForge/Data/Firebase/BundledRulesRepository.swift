@@ -70,7 +70,16 @@ struct RulesCatalogValidator {
         let classes = Set(catalog.classes.map(\.id))
         for rule in catalog.classes {
             try references(rule.availableSkillIDs, in: skills)
-            try references(rule.equipmentChoiceGroups.flatMap { $0 }, in: equipment)
+            for group in rule.equipmentChoiceGroups {
+                guard !group.options.isEmpty, group.options.allSatisfy({ !$0.isEmpty }),
+                      Set(group.options.map { Set($0) }).count == group.options.count else {
+                    throw RulesCatalogError.invalidData(rule.id)
+                }
+                for option in group.options {
+                    try unique(option)
+                    try references(option, in: equipment)
+                }
+            }
         }
         for rule in catalog.races { try references(rule.grantedLanguageIDs, in: languages) }
         for rule in catalog.backgrounds {

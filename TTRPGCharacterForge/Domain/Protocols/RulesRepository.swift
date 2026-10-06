@@ -70,11 +70,23 @@ struct ClassRule: Codable, Equatable, Identifiable, Sendable {
     var skillChoiceCount: Int
     var availableSkillIDs: [String]
     var archetypes: [NamedRule]
-    var equipmentChoiceGroups: [[String]]
+    var equipmentChoiceGroups: [EquipmentChoiceGroup]
     var startingWealth: DiceFormula
     var spellcastingAbility: AbilityID?
     var cantripsKnown: Int
     var spellsKnownOrPrepared: Int
+}
+
+/// Exactly one option is selected; every item in that option forms a required bundle.
+struct EquipmentChoiceGroup: Codable, Equatable, Sendable {
+    var options: [[String]]
+
+    var equipmentIDs: Set<String> { Set(options.flatMap { $0 }) }
+
+    func accepts(_ selected: Set<String>) -> Bool {
+        let selection = selected.intersection(equipmentIDs)
+        return options.filter { Set($0) == selection }.count == 1
+    }
 }
 
 /// Rules and proficiencies granted by a character background.
