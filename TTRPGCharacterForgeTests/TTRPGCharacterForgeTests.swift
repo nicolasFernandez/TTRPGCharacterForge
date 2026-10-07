@@ -335,6 +335,100 @@ private final class ReviewCharacterRepository: CharacterRepository {
 
 @MainActor
 final class CharacterCorruptionRecoveryTests: XCTestCase {
+    // UT-PR115-BACKGROUND-STORE: exercise CRUD through the actor created by main-actor composition.
+    func testRepositoryCRUDWhenCreatedOnMainActor() async throws {
+        XCTAssertTrue(Thread.isMainThread)
+        let container = try ModelContainer(for: CharacterRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let repository = SwiftDataCharacterRepository(container: container, portraitStore: PortraitStore())
+        let original = CharacterDocument(name: "Background original")
+        try await repository.save(original)
+        let copy = try await repository.duplicate(original)
+        XCTAssertNotEqual(copy.id, original.id)
+        let fetched = try await repository.fetch(withID: original.id)
+        XCTAssertEqual(fetched.name, original.name)
+        try await repository.delete(withID: copy.id)
+        let collection = try await repository.fetchCollection()
+        XCTAssertEqual(collection.characters.map(\.id), [original.id])
+        XCTAssertTrue(Thread.isMainThread)
+    }
+
+    func testConcurrentSavesRemainConsistentOnBackgroundStore() async throws {
+        let container = try ModelContainer(for: CharacterRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let repository = SwiftDataCharacterRepository(container: container, portraitStore: PortraitStore())
+        let documents = (0..<12).map { CharacterDocument(name: "Concurrent \($0)") }
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for document in documents {
+                group.addTask { try await repository.save(document) }
+            }
+            try await group.waitForAll()
+        }
+        let fetched = try await repository.fetchAll()
+        XCTAssertEqual(Set(fetched.map(\.id)), Set(documents.map(\.id)))
+        XCTAssertEqual(Set(fetched.map(\.name)), Set(documents.map(\.name)))
+    }
+
+    // UT-PR115-OVERFLOW: checked conversion validates persisted totals without changing denominations.
+    func testCurrencyOverflowRejectedBeforeUpdatingExistingRecord() async throws {
+        let container = try ModelContainer(for: CharacterRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let repository = SwiftDataCharacterRepository(container: container, portraitStore: PortraitStore())
+        let original = CharacterDocument(name: "Original", currencyBalance: .zero)
+        try await repository.save(original)
+        for balance in [CurrencyBalance(gold: Int64.max), CurrencyBalance(copper: Int64.max, silver: 1)] {
+            var invalid = original
+            invalid.name = "Must not be persisted"
+            invalid.currencyBalance = balance
+            do {
+                try await repository.save(invalid)
+                XCTFail("Overflow must be rejected")
+            } catch {
+                XCTAssertEqual(error as? ConvertCurrencyUseCase.ConversionError, .amountTooLarge)
+            }
+            let retained = try await repository.fetch(withID: original.id)
+            XCTAssertEqual(retained.name, original.name)
+            XCTAssertEqual(retained.currencyBalance, original.currencyBalance)
+        }
+    }
+
+    func testMaximumCurrencyTotalPreservesOriginalDenominations() async throws {
+        let container = try ModelContainer(for: CharacterRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let repository = SwiftDataCharacterRepository(container: container, portraitStore: PortraitStore())
+        let balance = CurrencyBalance(copper: Int64.max - 10, silver: 1)
+        let original = CharacterDocument(name: "Maximum", currencyBalance: balance)
+        try await repository.save(original)
+        let retained = try await repository.fetch(withID: original.id)
+        XCTAssertEqual(retained.currencyBalance, balance)
+    }
+
+    func testOverflowCurrencyIsUnreadableAndRetained() async throws {
+        for strategy in [JSONEncoder.DateEncodingStrategy.iso8601, .secondsSince1970] {
+            let container = try ModelContainer(for: CharacterRecord.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = strategy
+            let invalid = [CharacterDocument(name: "Product", currencyBalance: CurrencyBalance(platinum: Int64.max)),
+                           CharacterDocument(name: "Sum", currencyBalance: CurrencyBalance(copper: Int64.max, silver: 1))]
+            for document in invalid {
+                container.mainContext.insert(try CharacterRecord(document: document, encoder: encoder))
+            }
+            try container.mainContext.save()
+            let repository = SwiftDataCharacterRepository(container: container, portraitStore: PortraitStore())
+            let result = try await repository.fetchCollection()
+            XCTAssertTrue(result.characters.isEmpty)
+            XCTAssertEqual(Set(result.unreadableRecords.map(\.id)), Set(invalid.map(\.id)))
+            for unreadable in result.unreadableRecords {
+                guard case .corrupted(_, let cause) = unreadable.error as? CharacterStoreError else {
+                    return XCTFail("Expected corrupt overflow record")
+                }
+                XCTAssertEqual(cause as? ConvertCurrencyUseCase.ConversionError, .amountTooLarge)
+            }
+            XCTAssertEqual(try container.mainContext.fetchCount(FetchDescriptor<CharacterRecord>()), invalid.count)
+        }
+    }
+
     // UT-PR115-NEGATIVE-COINS: decoding enforces the save invariant for every denomination and date format.
     func testNegativeCurrencyIsUnreadableAndRetained() async throws {
         let invalidBalances = [CurrencyBalance(copper: -1), CurrencyBalance(silver: -1),
@@ -343,7 +437,7 @@ final class CharacterCorruptionRecoveryTests: XCTestCase {
         for strategy in [JSONEncoder.DateEncodingStrategy.iso8601, .secondsSince1970] {
             let container = try ModelContainer(for: CharacterRecord.self,
                 configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-            let repository = SwiftDataCharacterRepository(context: container.mainContext,
+            let repository = SwiftDataCharacterRepository(container: container,
                 portraitStore: PortraitStore())
             let valid = CharacterDocument(name: "Zero balance", currencyBalance: .zero)
             try await repository.save(valid)
@@ -381,7 +475,7 @@ final class CharacterCorruptionRecoveryTests: XCTestCase {
         for strategy in [JSONEncoder.DateEncodingStrategy.iso8601, .secondsSince1970] {
             let container = try ModelContainer(for: CharacterRecord.self,
                 configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-            let repository = SwiftDataCharacterRepository(context: container.mainContext,
+            let repository = SwiftDataCharacterRepository(container: container,
                 portraitStore: PortraitStore())
             let valid = CharacterDocument(name: "Supported")
             try await repository.save(valid)
@@ -418,7 +512,7 @@ final class CharacterCorruptionRecoveryTests: XCTestCase {
         let container = try ModelContainer(for: CharacterRecord.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
-        let repository = SwiftDataCharacterRepository(context: context, portraitStore: PortraitStore())
+        let repository = SwiftDataCharacterRepository(container: container, portraitStore: PortraitStore())
         let valid = CharacterDocument(name: "Readable")
         try await repository.save(valid)
         let corrupt = try CharacterRecord(document: CharacterDocument(name: "Unreadable"))
@@ -454,7 +548,7 @@ final class CharacterCorruptionRecoveryTests: XCTestCase {
         let record = try CharacterRecord(document: future, encoder: encoder)
         container.mainContext.insert(record)
         try container.mainContext.save()
-        let repository = SwiftDataCharacterRepository(context: container.mainContext,
+        let repository = SwiftDataCharacterRepository(container: container,
                                                        portraitStore: PortraitStore())
         let collection = try await repository.fetchCollection()
         XCTAssertTrue(collection.characters.isEmpty)

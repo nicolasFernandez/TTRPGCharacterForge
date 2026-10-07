@@ -65,16 +65,69 @@ enum CharacterStoreError: LocalizedError {
 /// Local-only repository. The historical filename is retained to avoid a risky Xcode
 /// project-file migration; no Firestore APIs are used.
 /// Stores character documents in the app's SwiftData model container.
-@MainActor
 final class SwiftDataCharacterRepository: CharacterRepository {
-    private let context: ModelContext
+    let store: Task<CharacterStoreActor, Never>
+    private static let creationQueue = DispatchQueue(label: "character-store.creation")
+
+    init(container: ModelContainer, portraitStore: PortraitStore) {
+        // SwiftData chooses its context queue during initialization. An explicit
+        // background queue prevents construction on the main thread.
+        store = Task.detached {
+            await withCheckedContinuation { continuation in
+                Self.creationQueue.async {
+                    continuation.resume(returning: CharacterStoreActor(
+                        container: container,
+                        portraitStore: portraitStore
+                    ))
+                }
+            }
+        }
+    }
+
+    func fetchAll() async throws -> [CharacterDocument] {
+        try await store.value.fetchAll()
+    }
+
+    func fetchCollection() async throws -> CharacterCollection {
+        try await store.value.fetchCollection()
+    }
+
+    func fetch(withID id: UUID) async throws -> CharacterDocument {
+        try await store.value.fetch(withID: id)
+    }
+
+    func save(_ character: CharacterDocument) async throws {
+        try await store.value.save(character)
+    }
+
+    func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument {
+        try await store.value.duplicate(character)
+    }
+
+    func delete(withID id: UUID) async throws {
+        try await store.value.delete(withID: id)
+    }
+}
+
+actor CharacterStoreActor: ModelActor {
+    private nonisolated let serialExecutor: DefaultSerialModelExecutor
+
+    nonisolated var modelExecutor: any ModelExecutor { serialExecutor }
+    nonisolated let modelContainer: ModelContainer
+
+    nonisolated var unownedExecutor: UnownedSerialExecutor {
+        serialExecutor.asUnownedSerialExecutor()
+    }
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let legacyDecoder: JSONDecoder
     private let portraitStore: PortraitStore
 
-    init(context: ModelContext, portraitStore: PortraitStore) {
-        self.context = context
+    init(container: ModelContainer, portraitStore: PortraitStore) {
+        let context = ModelContext(container)
+        context.autosaveEnabled = false
+        modelContainer = container
+        serialExecutor = DefaultSerialModelExecutor(modelContext: context)
         self.portraitStore = portraitStore
         encoder = JSONEncoder()
         decoder = JSONDecoder()
@@ -84,21 +137,21 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         legacyDecoder.dateDecodingStrategy = .secondsSince1970
     }
 
-    func fetchAll() async throws -> [CharacterDocument] {
-        let collection = try await fetchCollection()
+    func fetchAll() throws -> [CharacterDocument] {
+        let collection = try fetchCollection()
         // Legacy callers cannot display unreadable metadata; preserve an explicit
         // failure instead of silently returning a partial collection.
         if let unreadable = collection.unreadableRecords.first { throw unreadable.error }
         return collection.characters
     }
 
-    func fetchCollection() async throws -> CharacterCollection {
+    func fetchCollection() throws -> CharacterCollection {
         let descriptor = FetchDescriptor<CharacterRecord>(
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
         var characters: [CharacterDocument] = []
         var unreadable: [UnreadableCharacterRecord] = []
-        for record in try context.fetch(descriptor) {
+        for record in try modelContext.fetch(descriptor) {
             do {
                 characters.append(try decode(record))
             } catch {
@@ -108,29 +161,29 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         return CharacterCollection(characters: characters, unreadableRecords: unreadable)
     }
 
-    func fetch(withID id: UUID) async throws -> CharacterDocument {
+    func fetch(withID id: UUID) throws -> CharacterDocument {
         guard let record = try record(withID: id) else { throw CharacterStoreError.notFound(id) }
         return try decode(record)
     }
 
-    func save(_ character: CharacterDocument) async throws {
+    func save(_ character: CharacterDocument) throws {
         try validateCurrency(character.currencyBalance)
         var value = character
         value.updatedAt = Date()
         if let existing = try record(withID: value.id) {
             try existing.update(from: value, encoder: encoder)
         } else {
-            context.insert(try CharacterRecord(document: value, encoder: encoder))
+            modelContext.insert(try CharacterRecord(document: value, encoder: encoder))
         }
         do {
-            try context.save()
+            try modelContext.save()
         } catch {
-            context.rollback()
+            modelContext.rollback()
             throw error
         }
     }
 
-    func duplicate(_ character: CharacterDocument) async throws -> CharacterDocument {
+    func duplicate(_ character: CharacterDocument) throws -> CharacterDocument {
         var copy = character
         copy.id = UUID()
         let suffix = NSLocalizedString(
@@ -144,7 +197,7 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         copy.currentStep = .review
         copy.portrait = try portraitStore.duplicate(character.portrait, for: copy.id)
         do {
-            try await save(copy)
+            try save(copy)
         } catch {
             if let portrait = copy.portrait { try? portraitStore.delete(portrait) }
             throw error
@@ -152,14 +205,14 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         return copy
     }
 
-    func delete(withID id: UUID) async throws {
+    func delete(withID id: UUID) throws {
         guard let existing = try record(withID: id) else { return }
         let document = try? decode(existing)
-        context.delete(existing)
+        modelContext.delete(existing)
         do {
-            try context.save()
+            try modelContext.save()
         } catch {
-            context.rollback()
+            modelContext.rollback()
             throw error
         }
         if let portrait = document?.portrait {
@@ -170,7 +223,7 @@ final class SwiftDataCharacterRepository: CharacterRepository {
     private func record(withID id: UUID) throws -> CharacterRecord? {
         var descriptor = FetchDescriptor<CharacterRecord>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
-        return try context.fetch(descriptor).first
+        return try modelContext.fetch(descriptor).first
     }
 
     private func decode(_ record: CharacterRecord) throws -> CharacterDocument {
@@ -181,13 +234,7 @@ final class SwiftDataCharacterRepository: CharacterRepository {
             } catch {
                 document = try legacyDecoder.decode(CharacterDocument.self, from: record.payload)
             }
-            guard document.schemaVersion == CharacterDocument.currentSchemaVersion else {
-                throw CharacterStoreError.unsupportedSchema(document.schemaVersion)
-            }
-            guard document.rulesetID == CharacterDocument.rulesetID else {
-                throw CharacterStoreError.unsupportedRuleset(document.rulesetID)
-            }
-            try validateCurrency(document.currencyBalance)
+            try validateDocument(document)
             return document
         } catch let error as CharacterStoreError {
             throw error
@@ -196,11 +243,24 @@ final class SwiftDataCharacterRepository: CharacterRepository {
         }
     }
 
+    private func validateDocument(_ document: CharacterDocument) throws {
+        guard document.schemaVersion == CharacterDocument.currentSchemaVersion else {
+            throw CharacterStoreError.unsupportedSchema(document.schemaVersion)
+        }
+        guard document.rulesetID == CharacterDocument.rulesetID else {
+            throw CharacterStoreError.unsupportedRuleset(document.rulesetID)
+        }
+        try validateCurrency(document.currencyBalance)
+    }
+
     private func validateCurrency(_ balance: CurrencyBalance?) throws {
         guard let balance else { return }
-        guard [balance.copper, balance.silver, balance.electrum, balance.gold, balance.platinum]
-            .allSatisfy({ $0 >= 0 }) else {
-            throw ConvertCurrencyUseCase.ConversionError.invalidCoinCount
-        }
+        _ = try ConvertCurrencyUseCase().execute(.init(
+            copper: String(balance.copper),
+            silver: String(balance.silver),
+            electrum: String(balance.electrum),
+            gold: String(balance.gold),
+            platinum: String(balance.platinum)
+        ))
     }
 }

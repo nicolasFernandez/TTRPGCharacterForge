@@ -8,7 +8,6 @@
 import Foundation
 
 /// Defines persistence operations for character documents.
-@MainActor
 protocol CharacterRepository {
     func fetchCollection() async throws -> CharacterCollection
     func fetchAll() async throws -> [CharacterDocument]

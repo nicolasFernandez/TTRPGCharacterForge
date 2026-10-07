@@ -1,4 +1,5 @@
 import XCTest
+import Darwin
 @testable import TTRPGCharacterForge
 
 final class PR115StorageTests: XCTestCase {
@@ -18,6 +19,45 @@ final class PR115StorageTests: XCTestCase {
             XCTAssertEqual(try FileManager.default.destinationOfSymbolicLink(atPath: alias.path), destination)
             XCTAssertEqual(try Data(contentsOf: store.url(for: original)), Data([7]))
         }
+    }
+
+    // UT-PR115-NONREGULAR: directory and FIFO references fail before any I/O or deletion.
+    func testPortraitRejectsDirectoriesAndFIFOsWithoutRemovingThem() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let directory = root.appendingPathComponent("directory.jpg")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let child = directory.appendingPathComponent("retained.txt")
+        try Data([9]).write(to: child)
+        let fifo = root.appendingPathComponent("pipe.jpg")
+        XCTAssertEqual(mkfifo(fifo.path, S_IRUSR | S_IWUSR), 0)
+        let store = PortraitStore(baseURL: root)
+        for name in ["directory.jpg", "pipe.jpg"] {
+            let reference = PortraitReference(relativePath: name, crop: .fullImage)
+            XCTAssertThrowsError(try store.url(for: reference))
+            // A permissive implementation must fail metadata validation without ever opening a FIFO.
+            if (try? store.url(for: reference)) == nil {
+                XCTAssertThrowsError(try store.duplicate(reference, for: UUID()))
+                XCTAssertThrowsError(try store.delete(reference))
+            }
+            XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent(name).path))
+        }
+        XCTAssertEqual(try Data(contentsOf: child), Data([9]))
+    }
+
+    // UT-PR115-MISSING: only new saves may accept a valid filename that does not exist.
+    func testMissingPortraitCannotResolveButSaveCreatesRegularFile() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = PortraitStore(baseURL: root)
+        let missing = PortraitReference(relativePath: "missing.jpg", crop: .fullImage)
+        XCTAssertThrowsError(try store.url(for: missing))
+        XCTAssertThrowsError(try store.duplicate(missing, for: UUID()))
+        XCTAssertThrowsError(try store.delete(missing))
+        let saved = try store.save(Data([4]), for: UUID())
+        XCTAssertEqual(try Data(contentsOf: store.url(for: saved)), Data([4]))
     }
 
     // UT-PR115-SPELL-THREAD: loading runs off main; success and failure return on main.
