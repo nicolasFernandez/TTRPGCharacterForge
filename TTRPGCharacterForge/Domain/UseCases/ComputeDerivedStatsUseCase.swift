@@ -40,7 +40,8 @@ struct ComputeDerivedStatsUseCase {
         let selectedSkills = Set(character.selectedSkillIDs)
         let skills = Dictionary(uniqueKeysWithValues: catalog.skills.map { skill in
             let proficiency = selectedSkills.contains(skill.id) ? proficiencyBonus : 0
-            return (skill.id, modifiers[skill.ability, default: 0] + proficiency)
+            let calculatedValue = modifiers[skill.ability, default: 0] + proficiency
+            return (skill.id, character.overrides.skills[skill.id] ?? calculatedValue)
         })
         let savingThrows = Dictionary(uniqueKeysWithValues: AbilityID.allCases.map { ability in
             let proficiency = characterClass.savingThrowAbilities.contains(ability) ? proficiencyBonus : 0
