@@ -25,7 +25,7 @@ final class CompositionRoot {
         rulesRepository = BundledRulesRepository()
         portraitStore = PortraitStore()
         characterRepository = SwiftDataCharacterRepository(
-            context: modelContainer.mainContext,
+            container: modelContainer,
             portraitStore: portraitStore
         )
     }

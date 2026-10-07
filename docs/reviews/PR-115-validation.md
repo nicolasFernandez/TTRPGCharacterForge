@@ -218,3 +218,56 @@ swiftlint lint --strict --no-cache --config .swiftlint.yml --reporter json TTRPG
 Project syntax and diff checks exited 0. Search exited 1 with no obsolete-cache matches. Changed production-file lint exited 0 with zero violations; output `/tmp/PR115-Equipment-Production-Lint.json`. Best-effort full repository lint (`swiftlint lint --strict --no-cache --config .swiftlint.yml --reporter json`) exited 2 with one preexisting CharacterRecord.decode complexity violation (5 against threshold 4); log/report `/tmp/PR115-Review5432038382-cleaner-lint-nocache.log` and `.json`. Tests are normally excluded by the repository lint config.
 
 No functional blockers were found in the read-only cleanup review. UI QA actual results remain `Not run`; iOS runtime execution, CRAP, mutation, and UI/device/locale automation were not requested as full-pipeline gates and are not claimed. The earlier equipment-schema deferral is superseded by the user's explicit request to solve this review and the accepted focused scenarios.
+
+## Review 5433705810: latest overview open items
+
+Accepted currency-total overflow (4199692140), nonregular portrait entries (4199692189), background persistence (4199692218), and repository-contract documentation (4199692251). The repeated dismissal item 4039250142 already has awaited, failure-aware `flushAutosave()` and was previously verified; no new dismissal change is needed. The portrait finding's dangling-symlink subclaim was already covered: that existing regression passed against the pre-fix implementation. Directory and FIFO rejection were real failures and are fixed here.
+
+| Paths | Owner / allowed editor | Phase | Dirty before kickoff |
+| --- | --- | --- | --- |
+| CharacterRecord, CharacterRepository, CompositionRoot, TTRPGCharacterForgeTests | Store Coder only | Implementation | No |
+| PortraitStore, PR115StorageTests | Portrait Coder only | Implementation | No |
+| Migration document and this validation report | Root only | Documentation and evidence | No |
+| .github/workflows/ios.yml and mobsf.yml | Existing external work; excluded from this commit | Unrelated | Yes |
+
+Currency validation now uses the shared checked conversion at both save and decode boundaries, rejecting multiplication or sum overflow without normalizing original denomination counts. Invalid writes leave the existing row intact; unreadable payloads retain the `amountTooLarge` cause. Persistence uses a serial `ModelActor` with an off-main-created context and synchronous isolated transactions; the domain protocol is no longer main-actor-bound. Portrait reads, duplication, and deletion require an existing regular file; saving and duplication destinations may be new paths. Validation never deletes rejected directories, FIFOs, or symlinks.
+
+The migration document and updated PR description explain the breaking callback `Character` to async/throws `CharacterDocument` repository contract, collection/duplication/deletion API, retained JSON schema and date compatibility, unreadable-record recovery, and absence of a generic legacy importer. The two coders performed read-only peer reviews with no blockers. A separate Cleaner agent could not start because the session thread limit was reached; root executed the static gates directly. No separate Cleaner handoff is claimed.
+
+Executed compilation and static checks on 2026-10-06:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build-for-testing -jobs 2 -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/PR115-Combine-Review-Verified-20261006 CODE_SIGNING_ALLOWED=NO
+swiftlint lint --strict --no-cache --config .swiftlint.yml --reporter json
+git diff --check
+```
+
+All exited 0. The iOS app and test bundles compiled: `TEST BUILD SUCCEEDED`, log `/tmp/PR115-StoreActor-Build-20261006.log`. The build reports the existing AppIntents metadata-extraction warning because the app has no AppIntents.framework dependency. Strict repository lint produced zero violations; report `/tmp/PR115-StoreActor-Repository-Lint-20261006.json`, log `/tmp/PR115-StoreActor-Repository-Lint-20261006.log`. This supersedes the prior decode-complexity lint finding. Test files remain excluded by the normal lint configuration.
+
+Portrait regression execution:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-PortraitFile-Host-20261006 --scratch-path /tmp/PR115-PortraitFile-Build-20261006 --filter PR115StorageTests
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-PortraitFile-Minimal-Host-20261006 --jobs 2 --filter PR115StorageTests
+```
+
+RED: exit 1, six test methods executed with two assertion failures for accepting a directory and FIFO. The existing dangling/in-root symlink regression passed. Log `/tmp/PR115-PortraitFile-Red-20261006.log`. GREEN: exit 0, five portrait test methods passed with zero failures, log `/tmp/PR115-PortraitFile-Green-20261006.log`. The unrelated spell-thread test from the larger red harness is excluded from the minimal green harness. The minimal package uses actual PortraitStore source, actual persisted portrait definitions extracted from the domain file, and repository portrait tests without behavioral stubs. The missing-source fixture was improved after RED to create the trusted root first; no demonstrated pre-fix failure is claimed for that specific case. These are macOS host runtime results.
+
+The initial storage host runs failed a direct `Thread.isMainThread` probe even though instrumented context initialization, save, and collection fetch operations reported `false`. The probe was removed because querying actor executor thread identity from a trivial actor method did not reliably represent the SwiftData operation queue. The retained `UT-PR115-BACKGROUND-STORE` instead exercises repository CRUD and concurrent saves. Its corrected host run passed all nine `CharacterCorruptionRecoveryTests`; the current test validates usable operations and serialized consistency, while source inspection confirms context construction is dispatched to the dedicated background queue. Do not report this as iOS XCTest runtime evidence.
+
+## Review 5443876191: persistence, contract, and duplicate-type findings
+
+The review repeats four persistence/contract findings whose implementations were already present in this working tree: checked currency-total validation at save/decode, regular-file-only portrait access, serial background SwiftData persistence behind a nonisolated repository protocol, and documentation of the breaking repository contract. The repeated editor-dismissal finding is already addressed by awaiting `flushAutosave()` and dismissing only after success. The previously missed `CharacterListViewModel` duplicate was fixed by deleting the unused `CharactersListVM.swift`; it had no Xcode project reference or callers, and the active view model remains in `CharacterListViewModel.swift`.
+
+The PR description's impact section was updated to document the internal async/throwing `CharacterDocument` contract, collection/duplicate/delete operations, supported persisted-format compatibility, lack of a legacy callback adapter/importer, and background SwiftData boundary. The supporting local migration document remains `docs/reviews/PR-115-repository-contract-migration.md`.
+
+Focused host regressions rerun on 2026-10-07:
+
+```sh
+CLANG_MODULE_CACHE_PATH=/tmp/PR115-ClangModuleCache SWIFTPM_MODULECACHE_OVERRIDE=/tmp/PR115-SwiftPMModuleCache DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-StoreActor-Minimal-20261006 --jobs 2 --filter CharacterCorruptionRecoveryTests
+CLANG_MODULE_CACHE_PATH=/tmp/PR115-ClangModuleCache SWIFTPM_MODULECACHE_OVERRIDE=/tmp/PR115-SwiftPMModuleCache DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --package-path /tmp/PR115-PortraitFile-Minimal-Host-20261006 --jobs 2 --filter PR115StorageTests
+swiftlint lint --strict --no-cache --config .swiftlint.yml --reporter json
+git diff --check
+```
+
+Both host suites exited 0: nine persistence tests and five portrait-storage tests passed with zero failures. The full strict SwiftLint run exited 0 with zero violations across 82 files; diff validation exited 0. These are macOS host tests. iOS simulator XCTest remains blocked before test methods start by CoreSimulator/XCTest worker materialization, as recorded in the separate latency investigation.
