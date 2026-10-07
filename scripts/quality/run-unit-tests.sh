@@ -5,8 +5,14 @@ set -euo pipefail
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
 project_path="${QUALITY_PROJECT_PATH:-TTRPGCharacterForge.xcodeproj}"
-scheme_name="${QUALITY_SCHEME:-TTRPGCharacterForge}"
+scheme_name="${QUALITY_SCHEME:-TTRPGCharacterForgeTests}"
 derived_data_path="${QUALITY_DERIVED_DATA_PATH:-/tmp/TTRPGCharacterForge-QualityDerivedData}"
+enable_code_coverage="${QUALITY_ENABLE_CODE_COVERAGE:-YES}"
+
+if [[ "$enable_code_coverage" != "YES" && "$enable_code_coverage" != "NO" ]]; then
+  print -u2 "QUALITY_ENABLE_CODE_COVERAGE must be YES or NO."
+  exit 2
+fi
 
 if [[ -n "${QUALITY_DESTINATION:-}" ]]; then
   destination="$QUALITY_DESTINATION"
@@ -34,15 +40,25 @@ else
   destination="platform=iOS Simulator,id=$device_id"
 fi
 
-command=(
-  xcodebuild test
+common_arguments=(
   -project "$project_path"
   -scheme "$scheme_name"
   -destination "$destination"
   -derivedDataPath "$derived_data_path"
   -only-testing:TTRPGCharacterForgeTests
-  -enableCodeCoverage YES
+  -enableCodeCoverage "$enable_code_coverage"
+  -parallel-testing-enabled NO
   SWIFT_TREAT_WARNINGS_AS_ERRORS=NO
+)
+
+build_command=(
+  xcodebuild build-for-testing
+  "${common_arguments[@]}"
+)
+
+test_command=(
+  xcodebuild test-without-building
+  "${common_arguments[@]}"
 )
 
 if [[ -n "${QUALITY_RESULT_BUNDLE_PATH:-}" ]]; then
@@ -50,7 +66,8 @@ if [[ -n "${QUALITY_RESULT_BUNDLE_PATH:-}" ]]; then
     print -u2 "Result bundle already exists: $QUALITY_RESULT_BUNDLE_PATH"
     exit 2
   fi
-  command+=( -resultBundlePath "$QUALITY_RESULT_BUNDLE_PATH" )
+  test_command+=( -resultBundlePath "$QUALITY_RESULT_BUNDLE_PATH" )
 fi
 
-"${command[@]}"
+"${build_command[@]}"
+"${test_command[@]}"
