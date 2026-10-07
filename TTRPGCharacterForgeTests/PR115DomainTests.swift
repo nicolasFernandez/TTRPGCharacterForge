@@ -104,6 +104,18 @@ final class PR115DomainTests: XCTestCase {
         XCTAssertEqual(try ComputeDerivedStatsUseCase().execute(character: character, catalog: catalog).armorClass, try XCTUnwrap(catalog.equipment[index].armorClass) - 1)
     }
 
+    // UT-PR115-OVERRIDE-SKILLS-001: persisted skill overrides replace only their matching derived skill.
+    func testDerivedStatsUsePersistedSkillOverrides() throws {
+        let catalog = try BundledRulesRepository().catalog(locale: .english)
+        var character = equipmentFixture()
+        character.overrides.skills["athletics"] = 7
+
+        let stats = try ComputeDerivedStatsUseCase().execute(character: character, catalog: catalog)
+
+        XCTAssertEqual(stats.skills["athletics"], 7)
+        XCTAssertEqual(stats.skills["religion"], 3)
+    }
+
     func testCatalogRejectsUnknownSpellSchoolAndEmptyClassList() throws {
         var catalog = try BundledRulesRepository().catalog(locale: .english)
         catalog.spells[0].school = "unknown-school"
