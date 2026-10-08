@@ -179,6 +179,7 @@
 		CA37C6BA2959F1CA00C508CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA37C6B92959F1CA00C508CB /* Assets.xcassets */; };
 		CA37C6BD2959F1CA00C508CB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA37C6BC2959F1CA00C508CB /* Preview Assets.xcassets */; };
 		CA37C6C72959F1CA00C508CB /* TTRPGCharacterForgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA37C6C62959F1CA00C508CB /* TTRPGCharacterForgeTests.swift */; };
+		122000000000000000000002 /* US122CatalogValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 122000000000000000000001 /* US122CatalogValidationTests.swift */; };
 		CA37C6D12959F1CA00C508CB /* TTRPGCharacterForgeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA37C6D02959F1CA00C508CB /* TTRPGCharacterForgeUITests.swift */; };
 		CA37C6D32959F1CA00C508CB /* TTRPGCharacterForgeUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA37C6D22959F1CA00C508CB /* TTRPGCharacterForgeUITestsLaunchTests.swift */; };
 		CA37C6E1295A02A100C508CB /* Ability.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA37C6E0295A02A100C508CB /* Ability.swift */; };
@@ -353,6 +354,7 @@
 		CA37C6BC2959F1CA00C508CB /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CA37C6C22959F1CA00C508CB /* TTRPGCharacterForgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TTRPGCharacterForgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA37C6C62959F1CA00C508CB /* TTRPGCharacterForgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTRPGCharacterForgeTests.swift; sourceTree = "<group>"; };
+		122000000000000000000001 /* US122CatalogValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = US122CatalogValidationTests.swift; sourceTree = "<group>"; };
 		CA37C6CC2959F1CA00C508CB /* TTRPGCharacterForgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TTRPGCharacterForgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA37C6D02959F1CA00C508CB /* TTRPGCharacterForgeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTRPGCharacterForgeUITests.swift; sourceTree = "<group>"; };
 		CA37C6D22959F1CA00C508CB /* TTRPGCharacterForgeUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTRPGCharacterForgeUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -726,6 +728,7 @@
 		CA37C6C52959F1CA00C508CB /* TTRPGCharacterForgeTests */ = {
 			isa = PBXGroup;
 			children = (
+				122000000000000000000001 /* US122CatalogValidationTests.swift */,
 				F04800000000000000000004 /* US048CurrencyConverterTests.swift */,
 				6436F055F425437F07BA0AC8 /* PR115StorageTests.swift */,
 				12CFF90F6151F3EC737A2E25 /* PR115DomainTests.swift */,
@@ -1173,6 +1176,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				122000000000000000000002 /* US122CatalogValidationTests.swift in Sources */,
 				F04800000000000000000041 /* US048CurrencyConverterTests.swift in Sources */,
 				EEB65C369BEB5073188A3B18 /* PR115StorageTests.swift in Sources */,
 				3B060E61D2A244545837B40C /* PR115DomainTests.swift in Sources */,

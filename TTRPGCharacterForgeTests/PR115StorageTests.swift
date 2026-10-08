@@ -64,7 +64,9 @@ final class PR115StorageTests: XCTestCase {
     func testSpellLoadingRunsOffMainAndDeliversResultsOnMain() async {
         for shouldFail in [false, true] {
             let finished = expectation(description: "Spell load completes")
-            let repository = LocalSpellRepository(rulesRepository: ThreadCheckingRulesRepository(shouldFail: shouldFail))
+            let repository = LocalSpellRepository(
+                rulesRepository: ThreadCheckingRulesRepository(shouldFail: shouldFail)
+            )
             await MainActor.run {
                 repository.fetchAllSpells { result in
                     XCTAssertTrue(Thread.isMainThread)
@@ -83,6 +85,48 @@ final class PR115StorageTests: XCTestCase {
         }
     }
 
+    // UT-122-17 / CAT-122-05 / AC-122-06 / SC-122-06
+    func testSpellComponentsMapFromCanonicalCatalog() async {
+        let finished = expectation(description: "Canonical spell components map")
+        let catalog = RulesCatalog(
+            schemaVersion: RulesCatalog.supportedSchemaVersion,
+            rulesetID: CharacterDocument.rulesetID,
+            locale: RulesLocale.english.rawValue,
+            races: [],
+            classes: [],
+            backgrounds: [],
+            skills: [],
+            languages: [],
+            equipment: [],
+            spells: [
+                spellRule(id: "acid-splash", components: [.verbal, .somatic]),
+                spellRule(id: "light", components: [.verbal, .material])
+            ]
+        )
+        let repository = LocalSpellRepository(
+            rulesRepository: ThreadCheckingRulesRepository(shouldFail: false, catalog: catalog)
+        )
+
+        repository.fetchAllSpells { result in
+            switch result {
+            case .success(let spells):
+                let acidSplash = spells.first { $0.stableID == "acid-splash" }
+                XCTAssertEqual(acidSplash?.components.verbal, true)
+                XCTAssertEqual(acidSplash?.components.somatic, true)
+                XCTAssertEqual(acidSplash?.components.material, false)
+                let light = spells.first { $0.stableID == "light" }
+                XCTAssertEqual(light?.components.verbal, true)
+                XCTAssertEqual(light?.components.somatic, false)
+                XCTAssertEqual(light?.components.material, true)
+            case .failure(let error):
+                XCTFail("Unexpected spell mapping failure: \(error)")
+            }
+            finished.fulfill()
+        }
+
+        await fulfillment(of: [finished], timeout: 5)
+    }
+
     func testPortraitRejectsTraversalAbsoluteAndSymlinkPaths() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -92,7 +136,10 @@ final class PR115StorageTests: XCTestCase {
         let saved = try store.save(Data([1]), for: UUID())
         let outside = root.appendingPathComponent("private.txt")
         try Data([2]).write(to: outside)
-        try FileManager.default.createSymbolicLink(at: portraits.appendingPathComponent("link.jpg"), withDestinationURL: outside)
+        try FileManager.default.createSymbolicLink(
+            at: portraits.appendingPathComponent("link.jpg"),
+            withDestinationURL: outside
+        )
         for path in ["../private.txt", outside.path, "link.jpg", ".", ".."] {
             let invalid = PortraitReference(relativePath: path, crop: .fullImage)
             XCTAssertThrowsError(try store.url(for: invalid))
@@ -118,11 +165,50 @@ final class PR115StorageTests: XCTestCase {
 
 private struct ThreadCheckingRulesRepository: RulesRepository {
     let shouldFail: Bool
+    let catalog: RulesCatalog?
+
+    init(shouldFail: Bool, catalog: RulesCatalog? = nil) {
+        self.shouldFail = shouldFail
+        self.catalog = catalog
+    }
 
     func catalog(locale: RulesLocale) throws -> RulesCatalog {
         XCTAssertFalse(Thread.isMainThread)
         if shouldFail { throw RulesCatalogError.resourceMissing("test") }
-        return RulesCatalog(schemaVersion: 1, rulesetID: CharacterDocument.rulesetID, locale: locale.rawValue,
-                            races: [], classes: [], backgrounds: [], skills: [], languages: [], equipment: [], spells: [])
+        return catalog ?? RulesCatalog(
+            schemaVersion: 1,
+            rulesetID: CharacterDocument.rulesetID,
+            locale: locale.rawValue,
+            races: [],
+            classes: [],
+            backgrounds: [],
+            skills: [],
+            languages: [],
+            equipment: [],
+            spells: []
+        )
     }
+}
+
+private func spellRule(id: String, components: Set<SpellComponent>) -> SpellRule {
+    SpellRule(
+        id: id,
+        name: id,
+        level: 0,
+        school: SpellSchool.evocation.rawValue,
+        castingTime: "display",
+        castingTimeMechanic: SpellCastingTime(amount: 1, unit: .action),
+        range: "display",
+        rangeMechanic: SpellRange(kind: .touch, distanceFeet: nil),
+        components: "display",
+        componentSet: components,
+        duration: "display",
+        durationMechanic: SpellDuration(kind: .instantaneous, amount: nil, unit: nil),
+        description: "display",
+        higherLevels: nil,
+        hasHigherLevels: false,
+        classIDs: [ClassType.wizard.rawValue],
+        ritual: false,
+        concentration: false
+    )
 }

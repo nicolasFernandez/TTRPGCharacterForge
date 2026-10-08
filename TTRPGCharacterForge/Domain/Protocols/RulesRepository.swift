@@ -117,8 +117,21 @@ struct EquipmentRule: Codable, Equatable, Identifiable, Sendable {
     var armorClass: Int?
     var dexterityCap: Int?
     var damage: String?
+    var damageDice: DamageDice?
+    var damageType: DamageType?
     var weight: Double
     var costGP: Double
+}
+
+struct DamageDice: Codable, Equatable, Sendable {
+    var numberOfDice: Int
+    var sides: Int
+    var modifier: Int
+
+    enum CodingKeys: String, CodingKey {
+        case numberOfDice = "count"
+        case sides, modifier
+    }
 }
 
 /// Describes a spell available in the rules catalog.
@@ -128,14 +141,43 @@ struct SpellRule: Codable, Equatable, Identifiable, Sendable {
     var level: Int
     var school: String
     var castingTime: String
+    var castingTimeMechanic: SpellCastingTime
     var range: String
+    var rangeMechanic: SpellRange
     var components: String
+    var componentSet: Set<SpellComponent>
     var duration: String
+    var durationMechanic: SpellDuration
     var description: String
     var higherLevels: String?
+    var hasHigherLevels: Bool
     var classIDs: [String]
     var ritual: Bool
     var concentration: Bool
+}
+
+struct SpellCastingTime: Codable, Equatable, Sendable {
+    enum Unit: String, Codable, Sendable { case action, bonusAction, reaction, minute, hour }
+    var amount: Int
+    var unit: Unit
+}
+
+struct SpellRange: Codable, Equatable, Sendable {
+    enum Kind: String, Codable, Sendable { case distance, selfRange = "self", touch }
+    var kind: Kind
+    var distanceFeet: Int?
+}
+
+enum SpellComponent: String, Codable, Hashable, Sendable {
+    case verbal, somatic, material
+}
+
+struct SpellDuration: Codable, Equatable, Sendable {
+    enum Kind: String, Codable, Sendable { case instantaneous, timed, permanent, special }
+    enum Unit: String, Codable, Sendable { case round, minute, hour, day }
+    var kind: Kind
+    var amount: Int?
+    var unit: Unit?
 }
 
 /// Represents a conventional dice expression such as `2d6 + 3`.

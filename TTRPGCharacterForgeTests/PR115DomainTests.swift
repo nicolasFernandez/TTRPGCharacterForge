@@ -301,8 +301,8 @@ extension PR115DomainTests {
     func testEquipmentCatalogParityAndDocumentRoundTrip() throws {
         let english = try BundledRulesRepository().catalog(locale: .english)
         let spanish = try BundledRulesRepository().catalog(locale: .spanish)
-        XCTAssertEqual(english.schemaVersion, 2)
-        XCTAssertEqual(spanish.schemaVersion, 2)
+        XCTAssertEqual(english.schemaVersion, RulesCatalog.supportedSchemaVersion)
+        XCTAssertEqual(spanish.schemaVersion, RulesCatalog.supportedSchemaVersion)
         XCTAssertEqual(english.classes.map(\.id), spanish.classes.map(\.id))
         XCTAssertEqual(english.classes.map(\.equipmentChoiceGroups), spanish.classes.map(\.equipmentChoiceGroups))
         for catalog in [english, spanish] {
