@@ -177,6 +177,17 @@ final class US122CatalogValidationTests: XCTestCase {
         XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
 
         catalog = try BundledRulesRepository().catalog(locale: .english)
+        let canonicalIndex = try XCTUnwrap(catalog.equipment.firstIndex { $0.id == "greataxe" })
+        catalog.equipment[canonicalIndex].damageDice = nil
+        catalog.equipment[canonicalIndex].damageType = nil
+        XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
+
+        catalog = try BundledRulesRepository().catalog(locale: .english)
+        let displayIndex = try XCTUnwrap(catalog.equipment.firstIndex { $0.id == "greataxe" })
+        catalog.equipment[displayIndex].damage = nil
+        XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
+
+        catalog = try BundledRulesRepository().catalog(locale: .english)
         let diceIndex = try XCTUnwrap(catalog.equipment.firstIndex { $0.id == "greataxe" })
         catalog.equipment[diceIndex].damageDice?.numberOfDice = 0
         XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))

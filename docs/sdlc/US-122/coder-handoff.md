@@ -1,10 +1,10 @@
 # US-122 Coder handoff
 
 - Status: blocked
-- Scope: `US-122`; PR #124 findings `4220385628` and `4220385724`; `CAT-122-04`, `CAT-122-05`; `AC-122-04` / `SC-122-04`, `AC-122-06` / `SC-122-06`
+- Scope: `US-122`; PR #124 findings `4220385628`, `4220385724`, `4221568662`, and `4221568738`; `CAT-122-04`, `CAT-122-05`; `AC-122-04` / `SC-122-04`, `AC-122-06` / `SC-122-06`
 - Inputs: accepted US-122 feature and manual procedure; QA design; Coder skill; orchestrator handoff contract; Cleaner NO-GO rework
-- Files changed: `TTRPGCharacterForge/Domain/Entities/DamageType.swift`; `TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift`; `TTRPGCharacterForge/Data/Local/rules_en.json`; `TTRPGCharacterForge/Data/Local/rules_es.json`; `TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift`; `TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift`; `TTRPGCharacterForgeTests/US122CatalogValidationTests.swift`; `TTRPGCharacterForgeTests/PR115DomainTests.swift`; `docs/sdlc/US-122/coder-handoff.md`
-- Results: schema `3` separates localized display strings from directly Codable canonical mechanics. Equipment now carries complete damage dice (`numberOfDice`, sides, modifier; JSON key remains `count`) and canonical damage type. Spells now carry canonical casting time, range, component set, duration, and higher-level presence. Bilingual validation compares typed equality without translation dictionaries or parsers. Single-catalog validation rejects malformed typed shapes. `LocalSpellRepository` maps components from the canonical set while preserving all display strings. CI build `37808699354` exposed an invalid `DamageType` redeclaration before tests; the duplicate catalog enum was removed and the existing app-wide `DamageType` now conforms to `Codable` and `Sendable`. CI run `37809538161` then built successfully and all 16 `US122CatalogValidationTests` passed. Its only overall failure was the stale PR115 test literal `schemaVersion == 2`; that test now uses `RulesCatalog.supportedSchemaVersion` for both locales. A post-fix CI rerun is still required.
+- Files changed: `TTRPGCharacterForge/Domain/Entities/DamageType.swift`; `TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift`; `TTRPGCharacterForge/Data/Local/rules_en.json`; `TTRPGCharacterForge/Data/Local/rules_es.json`; `TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift`; `TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift`; `TTRPGCharacterForgeTests/US122CatalogValidationTests.swift`; `TTRPGCharacterForgeTests/PR115DomainTests.swift`; `TTRPGCharacterForgeTests/PR115StorageTests.swift`; `docs/sdlc/US-122/coder-handoff.md`
+- Results: schema `3` separates localized display strings from directly Codable canonical mechanics. Equipment now carries complete damage dice (`numberOfDice`, sides, modifier; JSON key remains `count`) and canonical damage type. Damage validation now requires localized display damage if and only if both canonical damage fields exist. Spells carry canonical casting time, range, component set, duration, and higher-level presence. Bilingual validation compares typed equality without translation dictionaries or parsers. Single-catalog validation rejects malformed typed shapes. `LocalSpellRepository` maps components from the canonical set while preserving display strings; `UT-122-17` exercises its public asynchronous API with nonempty acid-splash and light rules and asserts all component flags. CI build `37808699354` exposed an invalid `DamageType` redeclaration before tests; the duplicate catalog enum was removed and the existing app-wide `DamageType` now conforms to `Codable` and `Sendable`. CI run `37809538161` then built successfully and all 16 then-existing `US122CatalogValidationTests` passed. Its only overall failure was the stale PR115 test literal `schemaVersion == 2`; that test now uses `RulesCatalog.supportedSchemaVersion` for both locales. A post-fix CI rerun is still required for the latest tests.
 - Evidence: CI build `37808699354` compile failure; CI run `37809538161` successful build and 16/16 passing US122 tests, with the sole failure `PR115DomainTests.testEquipmentCatalogParityAndDocumentRoundTrip`; no local `.xcresult`. JSON checks printed `true` for both catalogs. Final changed-file SwiftLint reported zero findings.
 - Risks or assumptions: the typed values are mechanical encodings of existing bundled data, not human provenance or translation verification. Schema `3` intentionally rejects schema `2` catalogs. RED was not executed. Compilation and XCTest execution remain unproven locally.
 - Next role: Cleaner re-review, then CI/Coder runtime verification of `US122CatalogValidationTests` and affected spell-domain tests.
@@ -22,6 +22,7 @@
 | `UT-122-14` | Reject invalid distance and non-distance range shapes. |
 | `UT-122-15` | Reject invalid timed and instantaneous duration shapes. |
 | `UT-122-16` | Reject empty component sets and inconsistent higher-level presence. |
+| `UT-122-17` | Map acid-splash V+S-M and light V-S+M through `LocalSpellRepository.fetchAllSpells`. |
 
 ## Commands and exact results
 
@@ -80,6 +81,15 @@
    ```
 
    `git diff --check` exited `0`. SwiftLint exited `2` with 14 pre-existing line-length findings, all outside the changed lines; the two-line invariant substitution introduced no reported finding. Lint for this legacy file is documented as best-effort rather than passed.
+
+10. Final damage-presence and spell-mapping review fixes, both exit `0`:
+
+   ```sh
+   swiftlint lint --strict --no-cache --config .swiftlint.yml TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift TTRPGCharacterForgeTests/US122CatalogValidationTests.swift TTRPGCharacterForgeTests/PR115StorageTests.swift
+   git diff --check
+   ```
+
+   SwiftLint reported `0 violations, 0 serious`. Local XCTest was not retried because prior simulator operations were not bounded; CI is the runtime verifier.
 
 ## Gates
 

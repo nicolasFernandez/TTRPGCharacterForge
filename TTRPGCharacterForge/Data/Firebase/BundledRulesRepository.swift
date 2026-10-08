@@ -133,7 +133,10 @@ struct RulesCatalogValidator {
     }
 
     private func validateDamage(of item: EquipmentRule) throws {
-        guard (item.damageDice == nil) == (item.damageType == nil) else {
+        let hasDisplayDamage = item.damage != nil
+        let hasDamageDice = item.damageDice != nil
+        let hasDamageType = item.damageType != nil
+        guard hasDisplayDamage == hasDamageDice, hasDamageDice == hasDamageType else {
             throw RulesCatalogError.invalidData("equipment.\(item.id).damage")
         }
         if let dice = item.damageDice, dice.numberOfDice <= 0 || dice.sides <= 0 {
