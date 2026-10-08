@@ -1,75 +1,71 @@
 # US-122 Coder handoff
 
 - Status: blocked
-- Scope: `US-122`; PR #124 remediation for `UT-122-02` / `CAT-122-01` and `UT-122-07` / `CAT-122-05`; `AC-122-01` / `SC-122-01`, `AC-122-06` / `SC-122-06`
-- Inputs: `quality/features/issue-122-bilingual-srd-catalog-validation.feature`; `quality/manual-tests/issue-122-bilingual-srd-catalog-validation.md`; `docs/sdlc/US-122/qa-design.md`; `.agents/skills/sdlc-coder/SKILL.md`; `.agents/skills/sdlc-orchestrator/references/handoff-contract.md`; `AGENTS.md`
-- Files changed: `TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift`; `TTRPGCharacterForgeTests/US122CatalogValidationTests.swift`; `docs/sdlc/US-122/coder-handoff.md`
-- Results: the Copilot-reported `UT-122-02` failure was a test-fixture defect: the first bundled race is `dragonborn`, which has no subraces. The test now resolves the subrace-bearing `dwarf` by stable ID with `XCTUnwrap` and retains the nested-name rejection. Production names schema `2` as `RulesCatalog.supportedSchemaVersion`; `RulesCatalogValidator` rejects other versions before caching. The focused XCTest bundle compiled, but the run was canceled before any test method executed. The implementation gate remains blocked; compilation is not a test pass.
-- Evidence: partial `/tmp/PR124-US122-Green.xcresult`; derived data `/tmp/PR124-US122-Red-DerivedData`. `xcresulttool` reports `Failed`, `passedTests: 0`, `failedTests: 1`, `totalTestCount: 1`; the sole target-level failure is `Testing was canceled`. No XCTest method executed. The RED attempt produced no `/tmp/PR124-US122-Red.xcresult`.
-- Risks or assumptions: both bundled production catalogs use schema `2`, so the validator treats it as the supported application boundary. Schema mismatch uses existing `RulesCatalogError.invalidData("schemaVersion")`, avoiding a shared-error edit outside ownership. Per-file SwiftLint reported zero violations in the changed test and two pre-existing production-file violations at current lines 124 and 248; cache-write permission errors made lint best-effort failed/not clean. CRAP was skipped because complexity did not materially change. Mutation and UI QA were out of scope.
-- Next role: Cleaner should review the implementation and lint disposition. Coder must later obtain executed focused-test evidence before the implementation gate can pass.
+- Scope: `US-122`; PR #124 findings `4220385628` and `4220385724`; `CAT-122-04`, `CAT-122-05`; `AC-122-04` / `SC-122-04`, `AC-122-06` / `SC-122-06`
+- Inputs: accepted US-122 feature and manual procedure; QA design; Coder skill; orchestrator handoff contract; Cleaner NO-GO rework
+- Files changed: `TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift`; `TTRPGCharacterForge/Data/Local/rules_en.json`; `TTRPGCharacterForge/Data/Local/rules_es.json`; `TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift`; `TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift`; `TTRPGCharacterForgeTests/US122CatalogValidationTests.swift`; `docs/sdlc/US-122/coder-handoff.md`
+- Results: schema `3` separates localized display strings from directly Codable canonical mechanics. Equipment now carries complete damage dice (`numberOfDice`, sides, modifier; JSON key remains `count`) and canonical damage type. Spells now carry canonical casting time, range, component set, duration, and higher-level presence. Bilingual validation compares typed equality without translation dictionaries or parsers. Single-catalog validation rejects malformed typed shapes. `LocalSpellRepository` maps components from the canonical set while preserving all display strings. JSON structure/schema checks and strict changed-file lint passed. Runtime tests did not start because runtime-resolved simulator boot stalled and was interrupted; the required runtime gate remains blocked for CI.
+- Evidence: source files above; no new `.xcresult` or executed-test artifact. JSON checks printed `true` for both catalogs. Final SwiftLint reported `0 violations, 0 serious` across four changed Swift files.
+- Risks or assumptions: the typed values are mechanical encodings of existing bundled data, not human provenance or translation verification. Schema `3` intentionally rejects schema `2` catalogs. RED was not executed. Compilation and XCTest execution remain unproven locally.
+- Next role: Cleaner re-review, then CI/Coder runtime verification of `US122CatalogValidationTests` and affected spell-domain tests.
 
 ## Traceability
 
-| Unit test | Automated check | Acceptance/scenario | Coverage |
-| --- | --- | --- | --- |
-| `UT-122-02` | `CAT-122-01` | `AC-122-01`, `SC-122-01` | Reject blank stable IDs and localized text, including a stable-ID-selected nested `dwarf` subrace name. |
-| `UT-122-07` | `CAT-122-05` | `AC-122-06`, `SC-122-06` | Reject an otherwise valid catalog with unsupported schema `999`. |
+| Tests | Coverage |
+| --- | --- |
+| `UT-122-08` | Reject canonical damage-type and full dice modifier mismatch. |
+| `UT-122-09` | Reject loss from the canonical spell component set. |
+| `UT-122-10` | Reject higher-level-presence mismatch. |
+| `UT-122-11` | Reject numeric and category spell-range drift. |
+| `UT-122-12` | Reject canonical duration and casting-time drift. |
+| `UT-122-13` | Reject missing damage dice/type pairs and non-positive dice values. |
+| `UT-122-14` | Reject invalid distance and non-distance range shapes. |
+| `UT-122-15` | Reject invalid timed and instantaneous duration shapes. |
+| `UT-122-16` | Reject empty component sets and inconsistent higher-level presence. |
 
-## Commands run
+## Commands and exact results
 
-1. Runtime discovery, exit `0` after an initial sandbox-denied attempt:
+1. JSON syntax/inventory check, exit `0`:
+
+   ```sh
+   jq empty TTRPGCharacterForge/Data/Local/rules_en.json TTRPGCharacterForge/Data/Local/rules_es.json
+   jq -r '[.locale,.schemaVersion,([.equipment[]|select(.damage != null)]|length),([.equipment[]|select(.damageDice != null and .damageType != null)]|length),([.spells[]|select(has("castingTimeMechanic") and has("rangeMechanic") and has("componentSet") and has("durationMechanic") and has("hasHigherLevels"))]|length)]|@tsv' TTRPGCharacterForge/Data/Local/rules_en.json TTRPGCharacterForge/Data/Local/rules_es.json
+   ```
+
+   Output: `en 3 11 11 6`; `es 3 11 11 6`.
+
+2. Strict schema/mechanics JSON assertion, exit `0`, output `true` twice:
+
+   ```sh
+   jq empty TTRPGCharacterForge/Data/Local/rules_en.json TTRPGCharacterForge/Data/Local/rules_es.json && jq -e '(.schemaVersion == 3) and ([.equipment[] | select(.damage != null and (.damageDice == null or .damageType == null))] | length == 0) and ([.spells[] | select((has("castingTimeMechanic") and has("rangeMechanic") and has("componentSet") and has("durationMechanic") and has("hasHigherLevels")) | not)] | length == 0)' TTRPGCharacterForge/Data/Local/rules_en.json TTRPGCharacterForge/Data/Local/rules_es.json
+   ```
+
+3. Simulator discovery, exit `0`, resolved iPhone 11 `711D48FF-C3B4-4A29-8940-1D0658C230BA` on iOS 26.3:
 
    ```sh
    DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl list devices available --json
    ```
 
-   Resolved iPhone 17e, iOS 26.3.1, `9D873873-44BB-49CC-96EF-E2008EE1904E`.
-
-2. Boot and readiness, both exit `0`:
+4. Simulator boot was interrupted after an excessive wait; no normal exit and no XCTest method began. Per orchestration direction, no further simulator command was attempted:
 
    ```sh
-   DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl boot 9D873873-44BB-49CC-96EF-E2008EE1904E
-   DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl bootstatus 9D873873-44BB-49CC-96EF-E2008EE1904E -b
+   DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl boot 711D48FF-C3B4-4A29-8940-1D0658C230BA
    ```
 
-3. RED attempt before enforcement, interrupted after exceeding the bound; no normal exit, result bundle, functional RED, or observed test-method execution:
+5. First strict lint after Cleaner rework, exit `2`: one complexity violation in `validateText(in:)`; no other violations. That method was behavior-preservingly split into typed helpers.
+
+6. Final required strict lint, exit `0`, `0 violations, 0 serious`:
 
    ```sh
-   DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild test -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'platform=iOS Simulator,id=9D873873-44BB-49CC-96EF-E2008EE1904E' -only-testing:TTRPGCharacterForgeTests/US122CatalogValidationTests/testCatalogRejectsUnsupportedSchemaVersion -derivedDataPath /tmp/PR124-US122-Red-DerivedData -resultBundlePath /tmp/PR124-US122-Red.xcresult
+   swiftlint lint --strict --no-cache --config .swiftlint.yml TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift TTRPGCharacterForgeTests/US122CatalogValidationTests.swift
    ```
 
-4. GREEN attempt after implementation, interrupted after the bounded wait with no normal exit:
+7. `git diff --check`, exit `0` before the final handoff-only update; no whitespace errors.
 
-   ```sh
-   DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild test -project TTRPGCharacterForge.xcodeproj -scheme TTRPGCharacterForge -destination 'platform=iOS Simulator,id=9D873873-44BB-49CC-96EF-E2008EE1904E' -only-testing:TTRPGCharacterForgeTests/US122CatalogValidationTests -derivedDataPath /tmp/PR124-US122-Red-DerivedData -resultBundlePath /tmp/PR124-US122-Green.xcresult
-   ```
+## Gates
 
-   Output reached test-bundle compilation/signing, then became silent until cancellation: compilation only, not execution.
-
-5. Result inspection, exit `0`:
-
-   ```sh
-   DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun xcresulttool get test-results summary --path /tmp/PR124-US122-Green.xcresult --compact
-   ```
-
-   Actual: `Failed`; `passedTests: 0`; `failedTests: 1`; `totalTestCount: 1`; target-level `Testing was canceled`; no test method ran.
-
-6. Fast checks:
-
-   ```sh
-   git diff --check
-   plutil -lint TTRPGCharacterForge.xcodeproj/project.pbxproj
-   swiftlint lint --strict --config .swiftlint.yml --path TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift
-   swiftlint lint --strict --config .swiftlint.yml --path TTRPGCharacterForgeTests/US122CatalogValidationTests.swift
-   swiftlint lint --strict --config .swiftlint.yml TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift
-   swiftlint lint --strict --config .swiftlint.yml TTRPGCharacterForgeTests/US122CatalogValidationTests.swift
-   ```
-
-   `git diff --check` exited `0`; `plutil` exited `0` with `project.pbxproj: OK`. Both unsupported `--path` attempts exited `64`. Positional retries exited `1` after sandbox cache-write errors: the test file reported zero violations; production reported two pre-existing violations (complexity at current line 124, trailing closure at current line 248).
-
-## Explicitly not implemented or claimed
-
-- No passing XCTest result; no test method executed.
-- No human PDF review, provenance, ledger mutation, source policy, UI automation, mutation score, or CRAP score.
-- No Xcode project edit, GitHub comment, commit, push, or PR-body change.
+- Focused/runtime XCTest: blocked; no methods executed.
+- Lint: passed, strict, zero findings on changed Swift files.
+- CRAP: not measured; no same-run runtime coverage is available. New helpers are below the configured complexity threshold after rework.
+- Mutation: skipped; implementation uses Codable typed fields and direct equality, with no new parser/normalizer.
+- UI QA: skipped; localized display behavior is preserved.

@@ -115,9 +115,9 @@ final class LocalSpellRepository: SpellRepository {
             castingTime: rule.castingTime,
             range: rule.range,
             components: SpellComponents(
-                verbal: rule.components.contains("V"),
-                somatic: rule.components.contains("S"),
-                material: rule.components.contains("M"),
+                verbal: rule.componentSet.contains(.verbal),
+                somatic: rule.componentSet.contains(.somatic),
+                material: rule.componentSet.contains(.material),
                 materialComponents: nil
             ),
             duration: Self.duration(for: rule),

@@ -51,7 +51,7 @@ final class BundledRulesRepository: RulesRepository {
 
 extension RulesCatalog {
     /// The only catalog schema understood by this application build.
-    static let supportedSchemaVersion = 2
+    static let supportedSchemaVersion = 3
 }
 
 /// Verifies cross-references and invariants in a decoded rules catalog.
@@ -101,9 +101,11 @@ struct RulesCatalogValidator {
             guard SpellSchool(rawValue: spell.school) != nil, !spell.classIDs.isEmpty else {
                 throw RulesCatalogError.invalidData(spell.id)
             }
+            try validateMechanics(of: spell)
             try unique(spell.classIDs)
             try references(spell.classIDs, in: classes)
         }
+        try catalog.equipment.forEach(validateDamage)
     }
 
     private func unique(_ ids: [String]) throws {
@@ -121,36 +123,88 @@ struct RulesCatalogValidator {
         }
     }
 
+    private func validateMechanics(of spell: SpellRule) throws {
+        guard spell.castingTimeMechanic.amount > 0, !spell.componentSet.isEmpty,
+              spell.hasHigherLevels == (spell.higherLevels != nil) else {
+            throw RulesCatalogError.invalidData("spells.\(spell.id).mechanics")
+        }
+        try validateRange(of: spell)
+        try validateDuration(of: spell)
+    }
+
+    private func validateDamage(of item: EquipmentRule) throws {
+        guard (item.damageDice == nil) == (item.damageType == nil) else {
+            throw RulesCatalogError.invalidData("equipment.\(item.id).damage")
+        }
+        if let dice = item.damageDice, dice.numberOfDice <= 0 || dice.sides <= 0 {
+            throw RulesCatalogError.invalidData("equipment.\(item.id).damageDice")
+        }
+    }
+
+    private func validateRange(of spell: SpellRule) throws {
+        switch spell.rangeMechanic.kind {
+        case .distance:
+            guard let distance = spell.rangeMechanic.distanceFeet, distance > 0 else {
+                throw RulesCatalogError.invalidData("spells.\(spell.id).rangeMechanic")
+            }
+        case .selfRange, .touch:
+            guard spell.rangeMechanic.distanceFeet == nil else {
+                throw RulesCatalogError.invalidData("spells.\(spell.id).rangeMechanic")
+            }
+        }
+    }
+
+    private func validateDuration(of spell: SpellRule) throws {
+        switch spell.durationMechanic.kind {
+        case .timed:
+            guard let amount = spell.durationMechanic.amount, amount > 0, spell.durationMechanic.unit != nil else {
+                throw RulesCatalogError.invalidData("spells.\(spell.id).durationMechanic")
+            }
+        case .instantaneous, .permanent, .special:
+            guard spell.durationMechanic.amount == nil, spell.durationMechanic.unit == nil else {
+                throw RulesCatalogError.invalidData("spells.\(spell.id).durationMechanic")
+            }
+        }
+    }
+
     private func validateText(in catalog: RulesCatalog) throws {
-        for rule in catalog.races {
-            try required(rule.name, field: "races.\(rule.id).name")
-            try required(rule.description, field: "races.\(rule.id).description")
-            try namedRules(rule.subraces, field: "races.\(rule.id).subraces")
-            try unique(rule.featureIDs)
-        }
-        for rule in catalog.classes {
-            try required(rule.name, field: "classes.\(rule.id).name")
-            try required(rule.description, field: "classes.\(rule.id).description")
-            try namedRules(rule.archetypes, field: "classes.\(rule.id).archetypes")
-        }
-        for rule in catalog.backgrounds {
-            try required(rule.name, field: "backgrounds.\(rule.id).name")
-            try required(rule.description, field: "backgrounds.\(rule.id).description")
-            try required(rule.featureName, field: "backgrounds.\(rule.id).featureName")
-        }
+        try catalog.races.forEach(validateText)
+        try catalog.classes.forEach(validateText)
+        try catalog.backgrounds.forEach(validateText)
         for rule in catalog.skills { try required(rule.name, field: "skills.\(rule.id).name") }
         try namedRules(catalog.languages, field: "languages")
         for rule in catalog.equipment { try required(rule.name, field: "equipment.\(rule.id).name") }
-        for rule in catalog.spells {
-            try required(rule.name, field: "spells.\(rule.id).name")
-            try required(rule.castingTime, field: "spells.\(rule.id).castingTime")
-            try required(rule.range, field: "spells.\(rule.id).range")
-            try required(rule.components, field: "spells.\(rule.id).components")
-            try required(rule.duration, field: "spells.\(rule.id).duration")
-            try required(rule.description, field: "spells.\(rule.id).description")
-            if let higherLevels = rule.higherLevels {
-                try required(higherLevels, field: "spells.\(rule.id).higherLevels")
-            }
+        try catalog.spells.forEach(validateText)
+    }
+
+    private func validateText(of rule: RaceRule) throws {
+        try required(rule.name, field: "races.\(rule.id).name")
+        try required(rule.description, field: "races.\(rule.id).description")
+        try namedRules(rule.subraces, field: "races.\(rule.id).subraces")
+        try unique(rule.featureIDs)
+    }
+
+    private func validateText(of rule: ClassRule) throws {
+        try required(rule.name, field: "classes.\(rule.id).name")
+        try required(rule.description, field: "classes.\(rule.id).description")
+        try namedRules(rule.archetypes, field: "classes.\(rule.id).archetypes")
+    }
+
+    private func validateText(of rule: BackgroundRule) throws {
+        try required(rule.name, field: "backgrounds.\(rule.id).name")
+        try required(rule.description, field: "backgrounds.\(rule.id).description")
+        try required(rule.featureName, field: "backgrounds.\(rule.id).featureName")
+    }
+
+    private func validateText(of rule: SpellRule) throws {
+        try required(rule.name, field: "spells.\(rule.id).name")
+        try required(rule.castingTime, field: "spells.\(rule.id).castingTime")
+        try required(rule.range, field: "spells.\(rule.id).range")
+        try required(rule.components, field: "spells.\(rule.id).components")
+        try required(rule.duration, field: "spells.\(rule.id).duration")
+        try required(rule.description, field: "spells.\(rule.id).description")
+        if let higherLevels = rule.higherLevels {
+            try required(higherLevels, field: "spells.\(rule.id).higherLevels")
         }
     }
 
@@ -211,11 +265,16 @@ struct BilingualRulesCatalogValidator {
         try paired(english.equipment, spanish.equipment, section: "equipment") { left, right in
             left.kind == right.kind && left.armorClass == right.armorClass
                 && left.dexterityCap == right.dexterityCap
-                && damageDice(left.damage) == damageDice(right.damage)
+                && left.damageDice == right.damageDice && left.damageType == right.damageType
                 && left.weight == right.weight && left.costGP == right.costGP
         }
         try paired(english.spells, spanish.spells, section: "spells") { left, right in
             left.level == right.level && left.school == right.school
+                && left.castingTimeMechanic == right.castingTimeMechanic
+                && left.rangeMechanic == right.rangeMechanic
+                && left.componentSet == right.componentSet
+                && left.durationMechanic == right.durationMechanic
+                && left.hasHigherLevels == right.hasHigherLevels
                 && left.classIDs == right.classIDs && left.ritual == right.ritual
                 && left.concentration == right.concentration
         }
@@ -242,8 +301,4 @@ struct BilingualRulesCatalogValidator {
     private func equal<Value: Equatable>(_ left: Value, _ right: Value, field: String) throws {
         guard left == right else { throw RulesCatalogError.invalidData("bilingual.\(field)") }
     }
-}
-
-private func damageDice(_ damage: String?) -> String? {
-    damage?.split(whereSeparator: { $0.isWhitespace }).first.map(String.init)
 }
