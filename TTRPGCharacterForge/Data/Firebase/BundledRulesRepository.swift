@@ -49,10 +49,18 @@ final class BundledRulesRepository: RulesRepository {
     }
 }
 
+extension RulesCatalog {
+    /// The only catalog schema understood by this application build.
+    static let supportedSchemaVersion = 2
+}
+
 /// Verifies cross-references and invariants in a decoded rules catalog.
 struct RulesCatalogValidator {
     // swiftlint:disable:next cyclomatic_complexity
     func validate(_ catalog: RulesCatalog) throws {
+        guard catalog.schemaVersion == RulesCatalog.supportedSchemaVersion else {
+            throw RulesCatalogError.invalidData("schemaVersion")
+        }
         guard catalog.rulesetID == CharacterDocument.rulesetID else {
             throw RulesCatalogError.wrongRuleset(catalog.rulesetID)
         }

@@ -34,11 +34,20 @@ final class US122CatalogValidationTests: XCTestCase {
         XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
 
         catalog = try BundledRulesRepository().catalog(locale: .english)
-        catalog.races[0].subraces[0].name = ""
+        let dwarfIndex = try XCTUnwrap(catalog.races.firstIndex { $0.id == "dwarf" })
+        catalog.races[dwarfIndex].subraces[0].name = ""
         XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
 
         catalog = try BundledRulesRepository().catalog(locale: .english)
         catalog.spells[0].components = ""
+        XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
+    }
+
+    // UT-122-07 / CAT-122-05 / AC-122-06 / SC-122-06
+    func testCatalogRejectsUnsupportedSchemaVersion() throws {
+        var catalog = try BundledRulesRepository().catalog(locale: .english)
+        catalog.schemaVersion = 999
+
         XCTAssertThrowsError(try RulesCatalogValidator().validate(catalog))
     }
 
