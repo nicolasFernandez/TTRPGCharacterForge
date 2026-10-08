@@ -134,10 +134,6 @@ struct DamageDice: Codable, Equatable, Sendable {
     }
 }
 
-enum DamageType: String, Codable, Sendable {
-    case bludgeoning, piercing, slashing
-}
-
 /// Describes a spell available in the rules catalog.
 struct SpellRule: Codable, Equatable, Identifiable, Sendable {
     var id: String

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum DamageType: String {
+enum DamageType: String, Codable, Sendable {
     case acid
     case bludgeoning
     case cold

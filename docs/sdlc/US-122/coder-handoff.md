@@ -3,9 +3,9 @@
 - Status: blocked
 - Scope: `US-122`; PR #124 findings `4220385628` and `4220385724`; `CAT-122-04`, `CAT-122-05`; `AC-122-04` / `SC-122-04`, `AC-122-06` / `SC-122-06`
 - Inputs: accepted US-122 feature and manual procedure; QA design; Coder skill; orchestrator handoff contract; Cleaner NO-GO rework
-- Files changed: `TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift`; `TTRPGCharacterForge/Data/Local/rules_en.json`; `TTRPGCharacterForge/Data/Local/rules_es.json`; `TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift`; `TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift`; `TTRPGCharacterForgeTests/US122CatalogValidationTests.swift`; `docs/sdlc/US-122/coder-handoff.md`
-- Results: schema `3` separates localized display strings from directly Codable canonical mechanics. Equipment now carries complete damage dice (`numberOfDice`, sides, modifier; JSON key remains `count`) and canonical damage type. Spells now carry canonical casting time, range, component set, duration, and higher-level presence. Bilingual validation compares typed equality without translation dictionaries or parsers. Single-catalog validation rejects malformed typed shapes. `LocalSpellRepository` maps components from the canonical set while preserving all display strings. JSON structure/schema checks and strict changed-file lint passed. Runtime tests did not start because runtime-resolved simulator boot stalled and was interrupted; the required runtime gate remains blocked for CI.
-- Evidence: source files above; no new `.xcresult` or executed-test artifact. JSON checks printed `true` for both catalogs. Final SwiftLint reported `0 violations, 0 serious` across four changed Swift files.
+- Files changed: `TTRPGCharacterForge/Domain/Entities/DamageType.swift`; `TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift`; `TTRPGCharacterForge/Data/Local/rules_en.json`; `TTRPGCharacterForge/Data/Local/rules_es.json`; `TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift`; `TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift`; `TTRPGCharacterForgeTests/US122CatalogValidationTests.swift`; `docs/sdlc/US-122/coder-handoff.md`
+- Results: schema `3` separates localized display strings from directly Codable canonical mechanics. Equipment now carries complete damage dice (`numberOfDice`, sides, modifier; JSON key remains `count`) and canonical damage type. Spells now carry canonical casting time, range, component set, duration, and higher-level presence. Bilingual validation compares typed equality without translation dictionaries or parsers. Single-catalog validation rejects malformed typed shapes. `LocalSpellRepository` maps components from the canonical set while preserving all display strings. CI build `37808699354` exposed an invalid `DamageType` redeclaration before tests; the duplicate catalog enum was removed and the existing app-wide `DamageType` now conforms to `Codable` and `Sendable`. Its cases cover all catalog values (`bludgeoning`, `piercing`, `slashing`). JSON structure/schema checks and strict changed-file lint passed. Runtime tests did not start because runtime-resolved simulator boot stalled and was interrupted; the required runtime gate remains blocked for CI.
+- Evidence: source files above; CI build `37808699354` compile failure; no new `.xcresult` or executed-test artifact. JSON checks printed `true` for both catalogs. Final SwiftLint reported `0 violations, 0 serious` across five changed Swift files.
 - Risks or assumptions: the typed values are mechanical encodings of existing bundled data, not human provenance or translation verification. Schema `3` intentionally rejects schema `2` catalogs. RED was not executed. Compilation and XCTest execution remain unproven locally.
 - Next role: Cleaner re-review, then CI/Coder runtime verification of `US122CatalogValidationTests` and affected spell-domain tests.
 
@@ -61,6 +61,16 @@
    ```
 
 7. `git diff --check`, exit `0` before the final handoff-only update; no whitespace errors.
+
+8. CI compile-failure remediation fast checks, all exit `0`:
+
+   ```sh
+   swiftlint lint --strict --no-cache --config .swiftlint.yml TTRPGCharacterForge/Domain/Entities/DamageType.swift TTRPGCharacterForge/Domain/Protocols/RulesRepository.swift TTRPGCharacterForge/Data/Firebase/BundledRulesRepository.swift TTRPGCharacterForge/Data/Local/LocalSpellRepository.swift TTRPGCharacterForgeTests/US122CatalogValidationTests.swift
+   git diff --check
+   jq -e '[.equipment[].damageType // empty] | all(. == "bludgeoning" or . == "piercing" or . == "slashing")' TTRPGCharacterForge/Data/Local/rules_en.json TTRPGCharacterForge/Data/Local/rules_es.json
+   ```
+
+   SwiftLint: `0 violations, 0 serious`; catalog case check: `true` for each locale.
 
 ## Gates
 
